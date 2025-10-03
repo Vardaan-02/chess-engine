@@ -1,6 +1,6 @@
-#include <cassert>
+// #include <cassert>
 
-int main() {
-    // TODO: Unit tests for MoveGen
-    return 0;
-}
+// int main() {
+//     // TODO: Unit tests for MoveGen
+//     return 0;
+// }

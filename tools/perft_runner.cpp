@@ -1,2 +1,2 @@
-// CLI tool for perft testing
-int main() { return 0; }
+// // CLI tool for perft testing
+// int main() { return 0; }

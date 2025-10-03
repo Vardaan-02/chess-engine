@@ -1,5 +1,5 @@
-#pragma once
+// #pragma once
 
-class Search {
-    // Minimax / Alpha-Beta
-};
+// class Search {
+//     // Minimax / Alpha-Beta
+// };

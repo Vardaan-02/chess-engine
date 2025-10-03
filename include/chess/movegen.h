@@ -1,5 +1,5 @@
-#pragma once
+// #pragma once
 
-class MoveGen {
-    // Move generation logic
-};
+// class MoveGen {
+//     // Move generation logic
+// };

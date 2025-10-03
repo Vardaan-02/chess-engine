@@ -1,5 +1,5 @@
-#pragma once
+// #pragma once
 
-class TranspositionTable {
-    // TT logic
-};
+// class TranspositionTable {
+//     // TT logic
+// };

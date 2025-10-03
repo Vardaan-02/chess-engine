@@ -1,5 +1,5 @@
-#pragma once
+// #pragma once
 
-class Move {
-    // Move representation
-};
+// class Move {
+//     // Move representation
+// };

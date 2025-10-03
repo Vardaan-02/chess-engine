@@ -1,2 +1,2 @@
-// Simple UCI CLI
-int main() { return 0; }
+// // Simple UCI CLI
+// int main() { return 0; }

@@ -1,5 +1,5 @@
-#pragma once
+// #pragma once
 
-class TimeManager {
-    // Time controls
-};
+// class TimeManager {
+//     // Time controls
+// };
