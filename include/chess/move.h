@@ -9,8 +9,8 @@
 //  12-15 : piece moved (pawn=1, knight=2, ...)
 //  16-19 : captured piece (0 if none)
 //  20-23 : promotion piece (0 if none)
-//  24-27 : flags (en-passant, castling, etc.)
-//  28-31 : reserved (future use)
+//  24-30 : flags (en-passant, castling, etc.)
+//  31 : reserved (future use)
 
 using MoveType = uint32_t;
 
@@ -36,15 +36,14 @@ namespace Move
     };
 
     // Flags
-    enum class Flags : uint8_t
+    enum class Flags : uint8_t  // Maybe Changes In Future supporting 6 bits rather that 6 levels
     {
-        QUIET = 0,
         DOUBLE_PUSH = 1,
         KING_CASTLE = 2,
-        QUEEN_CASTLE = 3,
-        CAPTURE = 4,
-        EP_CAPTURE = 5,
-        PROMOTION = 6
+        QUEEN_CASTLE = 4,
+        CAPTURE = 8,
+        EP_CAPTURE = 16,
+        PROMOTION = 32
     };
 
     // ---------------- Encoding / Decoding ----------------

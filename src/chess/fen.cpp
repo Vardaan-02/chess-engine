@@ -63,11 +63,11 @@ Chess::Board parse_fen(const std::string& fen) {
     }
 
     // En passant
-    if (enpassant == "-") board.en_passant_square = -1;
+    if (enpassant == "-") board.en_passant_index = -1;
     else {
         int file = enpassant[0] - 'a';
         int rank = enpassant[1] - '1';
-        board.en_passant_square = board.square_index(rank, file);
+        board.en_passant_index = board.square_index(rank, file);
     }
 
     board.halfmove_clock = halfmove;
@@ -124,10 +124,10 @@ std::string to_fen(const Chess::Board& board) {
 
     // En passant
     fen += ' ';
-    if (board.en_passant_square == -1) fen += '-';
+    if (board.en_passant_index == -1) fen += '-';
     else {
-        int r = board.en_passant_square / 8;
-        int f = board.en_passant_square % 8;
+        int r = board.en_passant_index / 8;
+        int f = board.en_passant_index % 8;
         fen += ('a' + f);
         fen += ('1' + r);
     }

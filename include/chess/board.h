@@ -15,7 +15,7 @@ public:
 
     bool white_to_move;      // true = white to move
     int castling_rights;     // 4-bit mask: KQkq
-    int en_passant_square;   // -1 if none
+    int en_passant_index;   // -1 if none
     int halfmove_clock;
     int fullmove_number;
 
@@ -31,7 +31,7 @@ public:
     int square_index(int rank, int file) const;
 
     inline uint64_t getWhite() const { return (WP | WN | WB | WR | WQ | WK) ; }
-    inline uint64_t getblack() const { return (BP | BN | BB | BR | BQ | BK) ; }
+    inline uint64_t getBlack() const { return (BP | BN | BB | BR | BQ | BK) ; }
     inline uint64_t getOccupied() const { return (WP | WN | WB | WR | WQ | WK | BP | BN | BB | BR | BQ | BK) ; }
 
     inline int getRank(int sq) const { return sq / 8 ; }

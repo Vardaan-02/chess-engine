@@ -30,7 +30,7 @@ private:
     static void gen_knight_moves(const Chess::Board &B, std::vector<MoveType> &moves);
     static void gen_king_moves(const Chess::Board &B, std::vector<MoveType> &moves);
 
-    // Helpers
+    // Helper
     static void gen_white_pawn_single_push(const Chess::Board &B, std::vector<MoveType> &moves);
     static void gen_white_pawn_double_push(const Chess::Board &B, std::vector<MoveType> &moves);
     static void gen_white_pawn_captures(const Chess::Board &B, std::vector<MoveType> &moves);
@@ -38,7 +38,17 @@ private:
     static void gen_black_pawn_double_push(const Chess::Board &B, std::vector<MoveType> &moves);
     static void gen_black_pawn_captures(const Chess::Board &B, std::vector<MoveType> &moves);
 
+    static void gen_white_knight_moves(const Chess::Board &B, std::vector<MoveType> &moves);
+    static void gen_black_knight_moves(const Chess::Board &B, std::vector<MoveType> &moves);
+
+    static void gen_white_king_moves(const Chess::Board &B, std::vector<MoveType> &moves);
+    static void gen_black_king_moves(const Chess::Board &B, std::vector<MoveType> &moves);
     static void gen_castling_moves(const Chess::Board &B, std::vector<MoveType> &moves);
+
+    static std::pair<Move::Piece, bool> get_white_capturable_pieces(const Chess::Board& B, uint64_t targetSquare);
+    static std::pair<Move::Piece, bool> get_black_capturable_pieces(const Chess::Board& B, uint64_t targetSquare);
+    static void gen_white_pawn_promotions(int currPawnIndex, int nextPawnIndex, std::vector<MoveType>& moves, int flags, int capturedPiece);
+    static void gen_black_pawn_promotions(int currPawnIndex, int nextPawnIndex, std::vector<MoveType>& moves, int flags, int capturedPiece);
 };
 
 // ---------------- Legal move filter ----------------
