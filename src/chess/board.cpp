@@ -7,7 +7,7 @@ Board::Board()
     : WP(0), WN(0), WB(0), WR(0), WQ(0), WK(0),
       BP(0), BN(0), BB(0), BR(0), BQ(0), BK(0),
       white_to_move(true), castling_rights(0),
-      en_passant_square(-1), halfmove_clock(0),
+      en_passant_index(-1), halfmove_clock(0),
       fullmove_number(1) {}
 
 // Set a piece on a square
@@ -28,6 +28,12 @@ bool Board::is_occupied(uint64_t bb, int sq) const {
 // Convert rank/file to square index
 int Board::square_index(int rank, int file) const {
     return rank * 8 + file;
+}
+
+
+//To be implemented
+bool Board::is_attacked(uint64_t square) const{
+    return false;
 }
 
 // Print ASCII board

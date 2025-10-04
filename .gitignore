@@ -4,6 +4,7 @@
 /lib/
 /out/
 /dist/
+/old_code/
 
 # CMake files
 CMakeCache.txt

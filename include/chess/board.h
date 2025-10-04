@@ -29,6 +29,7 @@ public:
     void remove_piece(uint64_t &bb, int sq);
     bool is_occupied(uint64_t bb, int sq) const;
     int square_index(int rank, int file) const;
+    bool is_attacked(uint64_t square) const;
 
     inline uint64_t getWhite() const { return (WP | WN | WB | WR | WQ | WK) ; }
     inline uint64_t getBlack() const { return (BP | BN | BB | BR | BQ | BK) ; }
