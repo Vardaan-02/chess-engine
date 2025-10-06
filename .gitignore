@@ -1,0 +1,45 @@
+# Build folders
+/build/
+/bin/
+/lib/
+/out/
+/dist/
+/old_code/
+
+# CMake files
+CMakeCache.txt
+CMakeFiles/
+cmake_install.cmake
+Makefile
+compile_commands.json
+CTestTestfile.cmake
+Testing/
+
+# IDE specific
+.vscode/
+.idea/
+*.code-workspace
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Logs & temp
+*.log
+*.tmp
+*.swp
+
+# Executables & libs
+*.exe
+*.out
+*.obj
+*.o
+*.a
+*.so
+*.dll
+*.dylib
+
+# Test binaries
+/tests/chess_tests
+/tests/*.exe
+/tests/*.out
