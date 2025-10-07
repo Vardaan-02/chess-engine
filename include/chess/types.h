@@ -19,8 +19,7 @@ namespace chess {
 // SQUARES
 //-----------------------------------------------------------------------------
 
-// We use an 8-bit integer to represent a square. An enum provides type safety
-// and makes the code more readable by allowing us to use names like E4 instead of numbers.
+// We use an 8-bit integer to represent a square.
 enum Square : int8_t {
     A1, B1, C1, D1, E1, F1, G1, H1,
     A2, B2, C2, D2, E2, F2, G2, H2,
@@ -70,42 +69,32 @@ enum PieceType : int8_t {
 };
 
 // A Piece is a combination of a PieceType and a Color.
-// We can represent all 12 pieces (6 types * 2 colors) with a single integer.
-// This layout allows for easy calculation of piece type and color.
 enum Piece : int8_t {
-    NO_PIECE, // 0
-    W_PAWN,   // 1
-    B_PAWN,   // 2
-    W_KNIGHT, // 3
-    B_KNIGHT, // 4
-    W_BISHOP, // 5
-    B_BISHOP, // 6
-    W_ROOK,   // 7
-    B_ROOK,   // 8
-    W_QUEEN,  // 9
-    B_QUEEN,  // 10
-    W_KING,   // 11
-    B_KING,   // 12
-
-    PIECE_NB = 13
+    NO_PIECE = 0,
+    WP = 1, WN = 2, WB = 3, WR = 4, WQ = 5, WK = 6,
+    BP = 9, BN = 10, BB = 11, BR = 12, BQ = 13, BK = 14 // 4 th bit for color 1,2 and 3 for piece type
 };
+
+constexpr uint8_t colorMask = 0b1000;
+constexpr uint8_t typeMask = 0b0111;
 
 // Helper function to get the PieceType of a Piece
 constexpr PieceType type_of(Piece p) {
     if (p == NO_PIECE) return NO_PIECE_TYPE;
-    return PieceType((p + 1) / 2); // (1,2)->1, (3,4)->2, etc.
+    return (PieceType)(p & typeMask);
 }
+
 
 // Helper function to get the Color of a Piece
 constexpr Color color_of(Piece p) {
     if (p == NO_PIECE) return COLOR_NONE;
-    return Color((p - 1) % 2); // 1,3,5... -> 0 (WHITE), 2,4,6... -> 1 (BLACK)
+    return Color(p & colorMask); // 4th bit = 0 -> White, 1 -> Black
 }
 
 // Helper function to construct a Piece from a PieceType and Color
 constexpr Piece make_piece(Color c, PieceType pt) {
     if (c == COLOR_NONE || pt == NO_PIECE_TYPE) return NO_PIECE;
-    return Piece(pt * 2 - (1 - c));
+    return Piece((c << 3) | pt);
 }
 
 //-----------------------------------------------------------------------------
@@ -113,7 +102,6 @@ constexpr Piece make_piece(Color c, PieceType pt) {
 //-----------------------------------------------------------------------------
 
 // Castling rights are stored as a 4-bit bitmask within a single byte.
-// This allows for efficient updates and checks using bitwise operations.
 enum CastlingRights : uint8_t {
     NO_CASTLING    = 0,
     WHITE_KINGSIDE = 1,          // 0001
@@ -136,22 +124,48 @@ inline CastlingRights& operator&=(CastlingRights& a, CastlingRights b) { return 
 // MOVES
 //-----------------------------------------------------------------------------
 
-// A move is encoded into a 16-bit integer for memory efficiency.
-//
-// Bits | Description
-// -----|------------------------------------------------
-// 0-5  | "From" square (6 bits, 0-63)
-// 6-11 | "To" square (6 bits, 0-63)
-// 12-13| Promotion piece type (2 bits: N, B, R, Q)
-// 14-15| Special move flags (2 bits)
-//
-// Special Flags:
-// 00: Quiet move
-// 01: Capture
-// 10: Special 1 (En Passant, Castling)
-// 11: Special 2 (Currently unused, could be for null moves)
-using Move = uint16_t;
+// A move is encoded into a 32-bit integer for memory efficiency.
+// Move flags small bitfield (16-bit)
+enum MoveFlag : uint16_t {
+    FLAG_NONE       = 0,
+    FLAG_CAPTURE    = 1 << 0,
+    FLAG_PROMO      = 1 << 1,
+    FLAG_EP         = 1 << 2,
+    FLAG_CASTLE     = 1 << 3
+};
 
+// Compact move representation (32-bit)
+struct Move {   //          LSB                          MSB        
+    uint32_t m; // packed: from(6) | to(6) | flags(16) | promoPiece(4)
+    Move() : m(0) {}
+    Move(int from, int to, uint16_t flags=0, int promo=0) {
+        m = (uint32_t)(from & 0x3F)
+          | ((uint32_t)(to & 0x3F) << 6)
+          | ((uint32_t)(flags & 0xFFFF) << 12)
+          | ((uint32_t)(promo & 0xF) << 28);
+    }
+    int from() const { return m & 0x3F; }
+    int to() const { return (m >> 6) & 0x3F; }
+    uint16_t flags() const { return (m >> 12) & 0xFFFF; }
+    int promo() const { return (m >> 28) & 0xF; }
+};
+
+// ---------- Minimal undo record (compact) ----------
+struct Undo {
+    uint64_t zobrist_before;      // full hash
+    uint16_t captured_piece_and_halfmove; 
+        // lower 4 bits: captured piece code
+        // upper 12 bits: halfmove clock (halfmove clock <= 50)
+    int8_t prev_en_passant_sq;    // -1 if none
+    uint8_t prev_castle_rights;   // 4-bit mask
+    int8_t promoted_to;           // 0 if none 
+    int8_t prev_white_king_sq;    // for incremental king position restore
+    int8_t prev_black_king_sq;
+    Undo() = default;
+};
+
+
+//Will review later
 //-----------------------------------------------------------------------------
 // AI & EVALUATION TYPES
 //-----------------------------------------------------------------------------
