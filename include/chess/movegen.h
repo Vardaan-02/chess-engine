@@ -6,5 +6,5 @@
 namespace MoveGen {
     std::vector<chess::Move> moveList;
 
-    void generate_pawn_moves(Board B, std::vector<chess::Move>& moveList);
+    void generate_pawn_moves(const Board& B, std::vector<chess::Move>& moveList);
 };

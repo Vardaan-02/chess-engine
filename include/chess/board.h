@@ -72,11 +72,11 @@ public:
         return ~occupied; 
     }
     
-    inline bool is_square_occupied(chess::Square sq){
+    inline bool is_square_occupied(const chess::Square sq) const {
         return ((ONE << sq) & occupied);
     }
 
-    inline bool is_square_occupied_by(chess::Square sq, bool byWhite)
+    inline bool is_square_occupied_by(const chess::Square sq, const bool byWhite) const
     {
         return ((ONE << sq) & ((byWhite) ? white_occupied : black_occupied));
     }

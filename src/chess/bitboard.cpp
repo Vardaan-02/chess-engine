@@ -117,9 +117,9 @@ uint64_t generate_attacks_on_the_fly(Square s, uint64_t blockers, int deltas[], 
             if (current_sq < A1 || current_sq > H8 || square_distance(current_sq, Square(current_sq-deltas[i])) > 2) {
                 break;
             }
-            set_bit(attacks, current_sq);
+            util::set_bit(attacks, current_sq);
             // Stop if we hit a blocking piece
-            if (get_bit(blockers, current_sq)) {
+            if (util::get_bit(blockers, current_sq)) {
                 break;
             }
         }
@@ -134,7 +134,7 @@ void init_rook_magics(Square s) {
     RookMagics[s].mask &= ~edges;
 
     uint64_t b = Bitboard::Empty;
-    int num_blockers = count_bits(RookMagics[s].mask);
+    int num_blockers = util::count_bits(RookMagics[s].mask);
     for (int i = 0; i < (1 << num_blockers); ++i) {
         int deltas[] = { -8, -1, 1, 8 };
         uint64_t attacks = generate_attacks_on_the_fly(s, b, deltas, 4);
@@ -151,7 +151,7 @@ void init_bishop_magics(Square s) {
     BishopMagics[s].mask &= ~edges;
 
     uint64_t b = Bitboard::Empty;
-    int num_blockers = count_bits(BishopMagics[s].mask);
+    int num_blockers = util::count_bits(BishopMagics[s].mask);
     for (int i = 0; i < (1 << num_blockers); ++i) {
         int deltas[] = { -9, -7, 7, 9 };
         uint64_t attacks = generate_attacks_on_the_fly(s, b, deltas, 4);
@@ -175,13 +175,13 @@ void init_leaper_attacks() {
         // Pawns
         uint64_t white_pawn_attacks = Bitboard::Empty;
         uint64_t black_pawn_attacks = Bitboard::Empty;
-        if (!get_bit(Bitboard::FileA, s)) { // Not on File A
-            if (s <= H7) set_bit(white_pawn_attacks, Square(s + 7));
-            if (s >= A2) set_bit(black_pawn_attacks, Square(s - 9));
+        if (!util::get_bit(Bitboard::FileA, s)) { // Not on File A
+            if (s <= H7) util::set_bit(white_pawn_attacks, Square(s + 7));
+            if (s >= A2) util::set_bit(black_pawn_attacks, Square(s - 9));
         }
-        if (!get_bit(Bitboard::FileH, s)) { // Not on File H
-            if (s <= H7) set_bit(white_pawn_attacks, Square(s + 9));
-            if (s >= A2) set_bit(black_pawn_attacks, Square(s - 7));
+        if (!util::get_bit(Bitboard::FileH, s)) { // Not on File H
+            if (s <= H7) util::set_bit(white_pawn_attacks, Square(s + 9));
+            if (s >= A2) util::set_bit(black_pawn_attacks, Square(s - 7));
         }
         PawnAttacks[WHITE][s] = white_pawn_attacks;
         PawnAttacks[BLACK][s] = black_pawn_attacks;
@@ -193,13 +193,13 @@ void init_leaper_attacks() {
         for (int delta : knight_deltas) {
             Square target = Square(s + delta);
             if (target >= A1 && target <= H8 && square_distance(s, target) <= 2) {
-                set_bit(KnightAttacks[s], target);
+                util::set_bit(KnightAttacks[s], target);
             }
         }
         for (int delta : king_deltas) {
             Square target = Square(s + delta);
             if (target >= A1 && target <= H8 && square_distance(s, target) <= 1) {
-                set_bit(KingAttacks[s], target);
+                util::set_bit(KingAttacks[s], target);
             }
         }
     }

@@ -49,6 +49,7 @@ namespace Bitboard {
     const uint64_t Rank7 = Rank1 << (8 * 6);
     const uint64_t Rank8 = Rank1 << (8 * 7);
 
+    const uint64_t allEdgesBB = (Rank1 | Rank8 | FileA | FileH);
     // --- ADD THESE TWO ARRAYS ---
 
     // Lookup table to get a uint64_t of a square's file.
@@ -162,19 +163,50 @@ namespace util{
     }
 
     // Takes in a square and returns a square
-    inline chess::Square shift_square(chess::Square square, chess::Direction dir)
-    {   
-        uint64_t bitboard = create_bitboard_from_square(square);
-        switch(dir){
-            case chess::NORTH:         return (chess::Square)lsb(bitboard << 8);
-            case chess::SOUTH:         return (chess::Square)lsb(bitboard >> 8);
-            case chess::EAST:          return (chess::Square)lsb((get_file(lsb(bitboard)) == 7) ? 0ULL : (bitboard >> 1));
-            case chess::WEST:          return (chess::Square)lsb((get_file(lsb(bitboard)) == 0) ? 0ULL : (bitboard << 1));
-            case chess::NORTH_WEST:    return (chess::Square)lsb((get_file(lsb(bitboard)) == 0) ? 0ULL : (bitboard << 7));
-            case chess::NORTH_EAST:    return (chess::Square)lsb((get_file(lsb(bitboard)) == 7) ? 0ULL : (bitboard << 9));
-            case chess::SOUTH_EAST:    return (chess::Square)lsb((get_file(lsb(bitboard)) == 7) ? 0ULL : (bitboard >> 7));
-            case chess::SOUTH_WEST:    return (chess::Square)lsb((get_file(lsb(bitboard)) == 0) ? 0ULL : (bitboard >> 9)); 
+    inline chess::Square shift_square(chess::Square square, chess::Direction dir) {
+        if (square >= chess::SQUARE_NB) {
+            return chess::SQUARE_NONE;
         }
+
+        const uint64_t b = 1ULL << square;
+
+        switch (dir) {
+            case chess::NORTH:
+                return (b & chess::Bitboard::Rank8) ? chess::SQUARE_NONE : (chess::Square)(square + 8);
+            case chess::SOUTH:
+                return (b & chess::Bitboard::Rank1) ? chess::SQUARE_NONE : (chess::Square)(square - 8);
+            case chess::EAST:
+                return (b & chess::Bitboard::FileH) ? chess::SQUARE_NONE : (chess::Square)(square + 1);
+            case chess::WEST:
+                return (b & chess::Bitboard::FileA) ? chess::SQUARE_NONE : (chess::Square)(square - 1);
+            case chess::NORTH_EAST:
+                return ((b & chess::Bitboard::Rank8) || (b & chess::Bitboard::FileH)) ? chess::SQUARE_NONE : (chess::Square)(square + 9);
+            case chess::NORTH_WEST:
+                return ((b & chess::Bitboard::Rank8) || (b & chess::Bitboard::FileA)) ? chess::SQUARE_NONE : (chess::Square)(square + 7);
+            case chess::SOUTH_EAST:
+                return ((b & chess::Bitboard::Rank1) || (b & chess::Bitboard::FileH)) ? chess::SQUARE_NONE : (chess::Square)(square - 7);
+            case chess::SOUTH_WEST:
+                return ((b & chess::Bitboard::Rank1) || (b & chess::Bitboard::FileA)) ? chess::SQUARE_NONE : (chess::Square)(square - 9);
+        }
+
+        return chess::SQUARE_NONE;
+    }
+
+    //Expects a bitboard with nothing on any of the edges of the direction to shift (trims the edges itself)
+    // Shifts a bitboard, correctly handling wrap-around for each direction.
+    inline uint64_t shift_board(uint64_t bitboard, chess::Direction dir)
+    {
+        switch(dir){
+            case chess::NORTH:      return bitboard << 8;
+            case chess::SOUTH:      return bitboard >> 8;
+            case chess::EAST:       return (bitboard & (~chess::Bitboard::FileH)) << 1;
+            case chess::WEST:       return (bitboard & (~chess::Bitboard::FileA)) >> 1;
+            case chess::NORTH_EAST: return (bitboard & (~chess::Bitboard::FileH)) << 9;
+            case chess::NORTH_WEST: return (bitboard & (~chess::Bitboard::FileA)) << 7;
+            case chess::SOUTH_EAST: return (bitboard & (~chess::Bitboard::FileH)) >> 7;
+            case chess::SOUTH_WEST: return (bitboard & (~chess::Bitboard::FileA)) >> 9;
+        }
+        return 0ULL; // Should not be reached
     }
 
     //-----------------------------------------------------------------------------

@@ -210,22 +210,24 @@ void Board::print_board() const {
 }
 
 bool Board::square_attacked(chess::Square sq, bool by_white) const{
+    
+    chess::Color attackerColor = (by_white) ? chess::WHITE : chess::BLACK;
     // 1. Pawns
-        if (chess::PawnAttacks[by_white][sq] & bitboard[chess::WP | (by_white << 3)]) return true;
+    if (chess::PawnAttacks[by_white][sq] & bitboard[chess::make_piece(attackerColor, chess::PAWN)]) return true;
 
     // 2. Knight
-        if (chess::KnightAttacks[sq] & bitboard[chess::WN | (by_white << 3)]) return true;
+    if (chess::KnightAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KNIGHT)]) return true;
 
     // 3. King
-        if (chess::KingAttacks[sq] & bitboard[chess::WK | (by_white << 3)]) return true;
+    if (chess::KingAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KING)]) return true;
 
     // 4. Orthogonal Sliders
-        if (chess::get_rook_attacks(sq, occupied) & bitboard[chess::WK | (by_white << 3)]) return true;
-        if (chess::get_rook_attacks(sq, occupied) & bitboard[chess::WQ | (by_white << 3)]) return true;
+    if (chess::get_rook_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::ROOK)]) return true;
+    if (chess::get_rook_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
 
     // 5. Diagnol Sliders
-        if (chess::get_bishop_attacks(sq, occupied) & bitboard[chess::WB | (by_white << 3)]) return true;
-        if (chess::get_bishop_attacks(sq, occupied) & bitboard[chess::WQ | (by_white << 3)]) return true;
+    if (chess::get_bishop_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::BISHOP)]) return true;
+    if (chess::get_bishop_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
 
     return false;
 }
