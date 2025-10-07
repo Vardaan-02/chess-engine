@@ -10,6 +10,7 @@ constexpr uint64_t ONE = 1ULL;
 
 // ---------- Board state ----------
 class Board {
+public:
     // --- Bitboards: per-piece & color
     // 1 -> WP, 2 -> WN, 3 -> WB, 4 -> WR, 5 -> WQ, 6 -> WK 
     // 9 -> BP, 10 -> BN, 11-> BB, 12 -> BR, 13 -> BQ, 14 -> BK
@@ -71,8 +72,17 @@ class Board {
         return ~occupied; 
     }
     
-    inline uint64_t piece_bb(int piece_index) const { return bitboard[piece_index]; }
+    inline bool is_square_occupied(chess::Square sq){
+        return ((ONE << sq) & occupied);
+    }
 
+    inline bool is_square_occupied_by(chess::Square sq, bool byWhite)
+    {
+        return ((ONE << sq) & ((byWhite) ? white_occupied : black_occupied));
+    }
+
+    inline uint64_t piece_bb(int piece_index) const { return bitboard[piece_index]; }
+    
     inline void update_king_squares_from_bitboards() {
         white_king_sq = bitboard[chess::WK] ? (chess::Square)__builtin_ctzll(bitboard[chess::WK]) : chess::SQUARE_NONE;
         black_king_sq = bitboard[chess::BK] ? (chess::Square)__builtin_ctzll(bitboard[chess::BK]) : chess::SQUARE_NONE;

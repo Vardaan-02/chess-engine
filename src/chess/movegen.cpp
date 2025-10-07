@@ -1,3 +1,5 @@
 #include "movegen.h"
 
-// Implementation goes here
+namespace moveGen{
+    
+}

@@ -127,11 +127,23 @@ inline CastlingRights& operator&=(CastlingRights& a, CastlingRights b) { return 
 // A move is encoded into a 32-bit integer for memory efficiency.
 // Move flags small bitfield (16-bit)
 enum MoveFlag : uint16_t {
-    FLAG_NONE       = 0,
-    FLAG_CAPTURE    = 1 << 0,
-    FLAG_PROMO      = 1 << 1,
-    FLAG_EP         = 1 << 2,
-    FLAG_CASTLE     = 1 << 3
+    FLAG_QUIET              = 0,
+    FLAG_CAPTURE            = 1 << 0,
+    FLAG_PROMO              = 1 << 1,
+    FLAG_EP                 = 1 << 2,
+    FLAG_CASTLE             = 1 << 3,
+    FLAG_CAPTURE_PROMO      = (FLAG_CAPTURE | FLAG_PROMO)
+};
+
+enum Direction : uint8_t {
+    NORTH = 0,
+    SOUTH = 1,
+    EAST = 2,
+    WEST = 3,
+    SOUTH_EAST = 4,
+    SOUTH_WEST = 5,
+    NORTH_EAST = 6,
+    NORTH_WEST = 7
 };
 
 // Compact move representation (32-bit)

@@ -78,74 +78,6 @@ namespace Bitboard {
     };
 }
 
-//-----------------------------------------------------------------------------
-// CORE BIT MANIPULATION
-//-----------------------------------------------------------------------------
-
-// Check if a bit is set at a given square
-constexpr bool get_bit(uint64_t bb, Square s) {
-    return (bb >> s) & 1;
-}
-
-// Set a bit at a given square
-inline void set_bit(uint64_t& bb, Square s) {
-    bb |= (1ULL << s);
-}
-
-// Clear (pop) a bit at a given square
-inline void pop_bit(uint64_t& bb, Square s) {
-    bb &= ~(1ULL << s);
-}
-
-
-//-----------------------------------------------------------------------------
-// BIT SCANNING (LSB, POPCOUNT)
-//-----------------------------------------------------------------------------
-
-// Count the number of set bits in a uint64_t
-inline int count_bits(uint64_t bb) {
-#if defined(__GNUC__) || defined(__clang__)
-    return __builtin_popcountll(bb);
-#elif defined(_MSC_VER)
-    return (int)__popcnt64(bb);
-#else
-    // Fallback implementation if no intrinsics are available
-    int count = 0;
-    while (bb) {
-        bb &= bb - 1;
-        count++;
-    }
-    return count;
-#endif
-}
-
-// Get the index of the least significant bit (LSB)
-inline Square lsb(uint64_t bb) {
-    // Assert that the uint64_t is not empty
-    // assert(bb != 0);
-#if defined(__GNUC__) || defined(__clang__)
-    return Square(__builtin_ctzll(bb));
-#elif defined(_MSC_VER)
-    unsigned long index;
-    _BitScanForward64(&index, bb);
-    return (Square)index;
-#else
-    // Fallback implementation
-    if (bb == 0) return SQUARE_NONE;
-    int count = 0;
-    while (!((bb >> count) & 1))
-        count++;
-    return (Square)count;
-#endif
-}
-
-// Get and remove the LSB from a uint64_t
-inline Square pop_lsb(uint64_t& bb) {
-    Square s = lsb(bb);
-    bb &= bb - 1; // Efficiently removes the LSB
-    return s;
-}
-
 
 //-----------------------------------------------------------------------------
 // PRE-COMPUTED ATTACK TABLES & INITIALIZATION
@@ -213,13 +145,87 @@ inline void print_bitboard(uint64_t bb) {
         std::cout << " " << (r + 1) << " |";
         for (int f = 0; f < 8; ++f) {
             Square s = Square(r * 8 + f);
-            std::cout << " " << get_bit(bb, s);
+            std::cout << " " << util::get_bit(bb, s);
         }
         std::cout << "\n";
     }
     std::cout << "   +----------------\n     a b c d e f g h\n\n"
               << " uint64_t: " << bb << "ULL\n"
-              << " Popcount: " << count_bits(bb) << "\n" << std::endl;
+              << " Popcount: " << util::count_bits(bb) << "\n" << std::endl;
 }
 
 } // namespace chess
+
+namespace util{
+    inline uint64_t create_bitboard_from_square(chess::Square s){
+        return (ONE << s);
+    }
+
+    // Takes in a square and returns a square
+    inline chess::Square shift_square(chess::Square square, chess::Direction dir)
+    {   
+        uint64_t bitboard = create_bitboard_from_square(square);
+        switch(dir){
+            case chess::NORTH:         return (chess::Square)lsb(bitboard << 8);
+            case chess::SOUTH:         return (chess::Square)lsb(bitboard >> 8);
+            case chess::EAST:          return (chess::Square)lsb((get_file(lsb(bitboard)) == 7) ? 0ULL : (bitboard >> 1));
+            case chess::WEST:          return (chess::Square)lsb((get_file(lsb(bitboard)) == 0) ? 0ULL : (bitboard << 1));
+            case chess::NORTH_WEST:    return (chess::Square)lsb((get_file(lsb(bitboard)) == 0) ? 0ULL : (bitboard << 7));
+            case chess::NORTH_EAST:    return (chess::Square)lsb((get_file(lsb(bitboard)) == 7) ? 0ULL : (bitboard << 9));
+            case chess::SOUTH_EAST:    return (chess::Square)lsb((get_file(lsb(bitboard)) == 7) ? 0ULL : (bitboard >> 7));
+            case chess::SOUTH_WEST:    return (chess::Square)lsb((get_file(lsb(bitboard)) == 0) ? 0ULL : (bitboard >> 9)); 
+        }
+    }
+
+    //-----------------------------------------------------------------------------
+    // BIT SCANNING (LSB, POPCOUNT)
+    //-----------------------------------------------------------------------------
+
+    // Count the number of set bits in a uint64_t
+    inline int count_bits(uint64_t bb) {
+        return __builtin_popcountll(bb);
+    }
+
+    // Get the index of the least significant bit (LSB)
+    inline chess::Square lsb(uint64_t bb) {
+        return chess::Square(__builtin_ctzll(bb));
+    }
+
+    // Get and remove the LSB from a uint64_t
+    inline chess::Square pop_lsb(uint64_t& bb) {
+        chess::Square s = lsb(bb);
+        bb &= bb - 1; // Efficiently removes the LSB
+        return s;
+    }
+
+
+    //-----------------------------------------------------------------------------
+    // CORE BIT MANIPULATION
+    //-----------------------------------------------------------------------------
+
+    // Check if a bit is set at a given square
+    constexpr bool get_bit(uint64_t bb, chess::Square s) {
+        return (bb >> s) & 1;
+    }
+
+    // Set a bit at a given square
+    inline void set_bit(uint64_t& bb, chess::Square s) {
+        bb |= (1ULL << s);
+    }
+
+    // Clear (pop) a bit at a given square
+    inline void pop_bit(uint64_t& bb, chess::Square s) {
+        bb &= ~(1ULL << s);
+    }
+
+    // get file and rank
+    inline int8_t get_file(chess::Square s)
+    {
+        return s%8;
+    }
+
+    inline int8_t get_rank(chess::Square s)
+    {
+        return s/8;
+    }
+};
