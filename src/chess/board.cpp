@@ -1,8 +1,10 @@
 #include "board.h"
+#include "bitboard.h"
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
 #include <cctype>
+#include <iostream>
 
 // ----------------- Constructor -----------------
 Board::Board() {
@@ -26,7 +28,7 @@ void Board::clear() {
 }
 
 // ----------------- FEN parsing -----------------
-void Board::set_fen(const char *fen_cstr) {
+void Board::set_fen(std::string &fen_cstr) {
     clear();
     std::string fen(fen_cstr);
     std::istringstream iss(fen);
@@ -133,10 +135,97 @@ std::string Board::to_fen() const {
         if (castle_rights & chess::BLACK_QUEENSIDE) fen += 'q';
     }
     fen += ' ';
-    fen += (en_passant_sq == -1 ? "-" : "a1"); // TODO: map en_passant_sq to algebraic
+    int file = en_passant_sq % 8;
+    int rank = en_passant_sq / 8;
+    fen += (en_passant_sq == chess::SQUARE_NONE ? "-" : (std::string(1, 'a' + file) + std::string(1, '1' + rank))); 
     fen += ' ';
     fen += std::to_string(halfmove_clock);
     fen += ' ';
     fen += std::to_string(fullmove_number);
     return fen;
+}
+
+void Board::print_board() const {
+    std::cout << "\n    +------------------------+\n";
+
+    // Loop ranks from top (8) to bottom (1)
+    for (int rank = 7; rank >= 0; --rank) {
+        std::cout << " " << (rank + 1) << " | ";
+        for (int file = 0; file < 8; ++file) {
+            int sq = rank * 8 + file;
+            int p = board_array[sq];
+            char c = '.';
+
+            switch (p) {
+                case chess::WP: c = 'P'; break;
+                case chess::WN: c = 'N'; break;
+                case chess::WB: c = 'B'; break;
+                case chess::WR: c = 'R'; break;
+                case chess::WQ: c = 'Q'; break;
+                case chess::WK: c = 'K'; break;
+                case chess::BP: c = 'p'; break;
+                case chess::BN: c = 'n'; break;
+                case chess::BB: c = 'b'; break;
+                case chess::BR: c = 'r'; break;
+                case chess::BQ: c = 'q'; break;
+                case chess::BK: c = 'k'; break;
+                default: break;
+            }
+
+            std::cout << c << ' ';
+        }
+        std::cout << "|\n";
+    }
+
+    std::cout << "    +------------------------+\n";
+    std::cout << "      a b c d e f g h\n\n";
+
+    // Extra board state context — clutch for debugging
+    std::cout << "Side to move: " << (white_to_move ? "White" : "Black") << "\n";
+
+    std::cout << "Castling rights: ";
+    if (castle_rights == 0) std::cout << "-";
+    else {
+        if (castle_rights & chess::WHITE_KINGSIDE)  std::cout << "K";
+        if (castle_rights & chess::WHITE_QUEENSIDE) std::cout << "Q";
+        if (castle_rights & chess::BLACK_KINGSIDE)  std::cout << "k";
+        if (castle_rights & chess::BLACK_QUEENSIDE) std::cout << "q";
+    }
+    std::cout << "\n";
+
+    std::cout << "En passant: ";
+    if (en_passant_sq == chess::SQUARE_NONE) std::cout << "-";
+    else {
+        int file = en_passant_sq % 8;
+        int rank = en_passant_sq / 8;
+        std::cout << static_cast<char>('a' + file) << static_cast<char>('1' + rank);
+    }
+    std::cout << "\n";
+
+    std::cout << "Halfmove clock: " << halfmove_clock << "\n";
+    std::cout << "Fullmove number: " << fullmove_number << "\n";
+    std::cout << "Zobrist key: 0x" << std::hex << zobrist_key << std::dec << "\n";
+
+    std::cout << "Material (W/B): " << material_white << " / " << material_black << "\n\n";
+}
+
+bool Board::square_attacked(chess::Square sq, bool by_white) const{
+    // 1. Pawns
+        if (chess::PawnAttacks[by_white][sq] & bitboard[chess::WP | (by_white << 3)]) return true;
+
+    // 2. Knight
+        if (chess::KnightAttacks[sq] & bitboard[chess::WN | (by_white << 3)]) return true;
+
+    // 3. King
+        if (chess::KingAttacks[sq] & bitboard[chess::WK | (by_white << 3)]) return true;
+
+    // 4. Orthogonal Sliders
+        if (chess::get_rook_attacks(sq, occupied) & bitboard[chess::WK | (by_white << 3)]) return true;
+        if (chess::get_rook_attacks(sq, occupied) & bitboard[chess::WQ | (by_white << 3)]) return true;
+
+    // 5. Diagnol Sliders
+        if (chess::get_bishop_attacks(sq, occupied) & bitboard[chess::WB | (by_white << 3)]) return true;
+        if (chess::get_bishop_attacks(sq, occupied) & bitboard[chess::WQ | (by_white << 3)]) return true;
+
+    return false;
 }

@@ -1,14 +1,14 @@
-#include "chess/bitboard.h"
-#include "chess/types.h"
+#include "bitboard.h"
+#include "types.h"
 
 /**
- * @file bitboard.cpp
- * @brief Implements the initialization of all pre-computed bitboard data.
+ * @file uint64_t.cpp
+ * @brief Implements the initialization of all pre-computed uint64_t data.
  *
  * This file contains the definitions for the attack tables and the logic
  * for the one-time `init()` function. This function populates the tables for
  * pawn, knight, and king attacks, and crucially, generates the complete set of
- * attacks for rooks and bishops using the Magic Bitboard technique.
+ * attacks for rooks and bishops using the Magic uint64_t technique.
  */
 
 namespace chess {
@@ -20,14 +20,14 @@ namespace chess {
 // in the header file.
 //-----------------------------------------------------------------------------
 
-Bitboard PawnAttacks[COLOR_NB][SQUARE_NB];
-Bitboard KnightAttacks[SQUARE_NB];
-Bitboard KingAttacks[SQUARE_NB];
+uint64_t PawnAttacks[COLOR_NB][SQUARE_NB];
+uint64_t KnightAttacks[SQUARE_NB];
+uint64_t KingAttacks[SQUARE_NB];
 
 Magic RookMagics[SQUARE_NB];
 Magic BishopMagics[SQUARE_NB];
-Bitboard RookAttacks[SQUARE_NB][4096];
-Bitboard BishopAttacks[SQUARE_NB][512];
+uint64_t RookAttacks[SQUARE_NB][4096];
+uint64_t BishopAttacks[SQUARE_NB][512];
 
 //-----------------------------------------------------------------------------
 // ANONYMOUS NAMESPACE FOR HELPER FUNCTIONS
@@ -107,8 +107,8 @@ const Magic BISHOP_MAGICS_INIT[SQUARE_NB] = {
 
 // Helper function to generate slider attacks "on the fly". This is used
 // only once during initialization to populate the magic lookup tables.
-Bitboard generate_attacks_on_the_fly(Square s, Bitboard blockers, int deltas[], int num_deltas) {
-    Bitboard attacks = BB::Empty;
+uint64_t generate_attacks_on_the_fly(Square s, uint64_t blockers, int deltas[], int num_deltas) {
+    uint64_t attacks = Bitboard::Empty;
     for (int i = 0; i < num_deltas; ++i) {
         Square current_sq = s;
         while (true) {
@@ -130,14 +130,14 @@ Bitboard generate_attacks_on_the_fly(Square s, Bitboard blockers, int deltas[], 
 // Generates rook attacks and masks for a given square
 void init_rook_magics(Square s) {
     RookMagics[s] = ROOK_MAGICS_INIT[s];
-    Bitboard edges = ((BB::Rank1 | BB::Rank8) & ~BB::Rank[s]) | ((BB::FileA | BB::FileH) & ~BB::File[s]);
+    uint64_t edges = ((Bitboard::Rank1 | Bitboard::Rank8) & ~Bitboard::Rank[s]) | ((Bitboard::FileA | Bitboard::FileH) & ~Bitboard::File[s]);
     RookMagics[s].mask &= ~edges;
 
-    Bitboard b = BB::Empty;
+    uint64_t b = Bitboard::Empty;
     int num_blockers = count_bits(RookMagics[s].mask);
     for (int i = 0; i < (1 << num_blockers); ++i) {
         int deltas[] = { -8, -1, 1, 8 };
-        Bitboard attacks = generate_attacks_on_the_fly(s, b, deltas, 4);
+        uint64_t attacks = generate_attacks_on_the_fly(s, b, deltas, 4);
         size_t magic_index = (b * RookMagics[s].magic) >> RookMagics[s].shift;
         RookAttacks[s][magic_index] = attacks;
         b = (b - RookMagics[s].mask) & RookMagics[s].mask; // Carry-rippler trick
@@ -147,14 +147,14 @@ void init_rook_magics(Square s) {
 // Generates bishop attacks and masks for a given square
 void init_bishop_magics(Square s) {
     BishopMagics[s] = BISHOP_MAGICS_INIT[s];
-    Bitboard edges = BB::Rank1 | BB::Rank8 | BB::FileA | BB::FileH;
+    uint64_t edges = Bitboard::Rank1 | Bitboard::Rank8 | Bitboard::FileA | Bitboard::FileH;
     BishopMagics[s].mask &= ~edges;
 
-    Bitboard b = BB::Empty;
+    uint64_t b = Bitboard::Empty;
     int num_blockers = count_bits(BishopMagics[s].mask);
     for (int i = 0; i < (1 << num_blockers); ++i) {
         int deltas[] = { -9, -7, 7, 9 };
-        Bitboard attacks = generate_attacks_on_the_fly(s, b, deltas, 4);
+        uint64_t attacks = generate_attacks_on_the_fly(s, b, deltas, 4);
         size_t magic_index = (b * BishopMagics[s].magic) >> BishopMagics[s].shift;
         BishopAttacks[s][magic_index] = attacks;
         b = (b - BishopMagics[s].mask) & BishopMagics[s].mask; // Carry-rippler trick
@@ -173,13 +173,13 @@ void init_magics() {
 void init_leaper_attacks() {
     for (Square s = A1; s <= H8; s = Square(s + 1)) {
         // Pawns
-        Bitboard white_pawn_attacks = BB::Empty;
-        Bitboard black_pawn_attacks = BB::Empty;
-        if (!get_bit(BB::FileA, s)) { // Not on File A
+        uint64_t white_pawn_attacks = Bitboard::Empty;
+        uint64_t black_pawn_attacks = Bitboard::Empty;
+        if (!get_bit(Bitboard::FileA, s)) { // Not on File A
             if (s <= H7) set_bit(white_pawn_attacks, Square(s + 7));
             if (s >= A2) set_bit(black_pawn_attacks, Square(s - 9));
         }
-        if (!get_bit(BB::FileH, s)) { // Not on File H
+        if (!get_bit(Bitboard::FileH, s)) { // Not on File H
             if (s <= H7) set_bit(white_pawn_attacks, Square(s + 9));
             if (s >= A2) set_bit(black_pawn_attacks, Square(s - 7));
         }
@@ -198,7 +198,7 @@ void init_leaper_attacks() {
         }
         for (int delta : king_deltas) {
             Square target = Square(s + delta);
-            if (target >= A1 && target <= H8 && square_distance(s, target) <= 2) {
+            if (target >= A1 && target <= H8 && square_distance(s, target) <= 1) {
                 set_bit(KingAttacks[s], target);
             }
         }

@@ -4,11 +4,12 @@
 #include <vector>
 #include <string>
 #include "types.h"
+#include <string>
 
 constexpr uint64_t ONE = 1ULL;
 
 // ---------- Board state ----------
-struct Board {
+class Board {
     // --- Bitboards: per-piece & color
     // 1 -> WP, 2 -> WN, 3 -> WB, 4 -> WR, 5 -> WQ, 6 -> WK 
     // 9 -> BP, 10 -> BN, 11-> BB, 12 -> BR, 13 -> BQ, 14 -> BK
@@ -77,11 +78,14 @@ struct Board {
         black_king_sq = bitboard[chess::BK] ? (chess::Square)__builtin_ctzll(bitboard[chess::BK]) : chess::SQUARE_NONE;
     }
 
-
+public:
     Board();
     void clear();
-    void set_fen(const char *fen_cstr);
+    void set_fen(std::string &fen_cstr);
     std::string to_fen() const;
+
+    // Debug
+    void print_board() const;
 
     // Make/unmake
     void make_move(const chess::Move &mv);
@@ -131,5 +135,4 @@ private:
     }
     //Assumes 0-Based indexing of the board, a1 = 0 (from bottom left). 0-based indexing for rank and files too
     inline chess::Square get_square_from_rank_file(int8_t rank, int8_t file) { return (chess::Square)(8 * rank + file); }
-    
 };
