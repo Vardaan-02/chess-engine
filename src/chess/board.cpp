@@ -41,7 +41,7 @@ void Board::set_fen(std::string &fen_cstr) {
     for (char c : board_part) {
         if (c == '/') { sq -= 16; continue; }
         if (std::isdigit(c)) { sq += (c - '0'); continue; }
-        int8_t piece = chess::NO_PIECE;
+        chess::Piece piece = chess::NO_PIECE;
         switch(c) {
             case 'P': piece = chess::WP; break;
             case 'N': piece = chess::WN; break;
@@ -57,10 +57,8 @@ void Board::set_fen(std::string &fen_cstr) {
             case 'k': piece = chess::BK; break;
             default: throw std::runtime_error("Invalid FEN char");
         }
-        bitboard[piece] |= ONE << sq;
+        util::set_bit(bitboard[piece], (chess::Square)sq);
         board_array[sq] = piece;
-        if (piece == chess::WK) white_king_sq = (chess::Square)sq; //Overload assignment operator for square
-        if (piece == chess::BK) black_king_sq = (chess::Square)sq;
         sq++;
     }
 
@@ -86,12 +84,8 @@ void Board::set_fen(std::string &fen_cstr) {
     }
 
     fullmove_number = fullmove;
-
+    update_king_squares_from_bitboards();
     update_occupancies();
-
-    // // Optional: compute material
-    // for (int i = chess::WP; i <= chess::WK; ++i) update_material(i, true);
-    // for (int i = chess::BP; i <= chess::BK; ++i) update_material(i, true);
 }
 
 // ----------------- FEN serialization -----------------
@@ -209,6 +203,197 @@ void Board::print_board() const {
     std::cout << "Material (W/B): " << material_white << " / " << material_black << "\n\n";
 }
 
+//-----------------------------------------------------------------------------
+// MAKE MOVE
+//-----------------------------------------------------------------------------
+void Board::make_move(const chess::Move &mv) {
+    // 1. Save current state for unmaking the move later
+    chess::Undo undo;
+    undo.prev_castle_rights = castle_rights;
+    undo.prev_en_passant_sq = en_passant_sq;
+    undo.captured_piece_and_halfmove = (halfmove_clock << 4) | chess::NO_PIECE;
+
+    // 2. Extract move details
+    const chess::Square from = (chess::Square)mv.from();
+    const chess::Square to = (chess::Square)mv.to();
+    const uint16_t flags = mv.flags();
+    
+    const chess::Piece moving_piece = (chess::Piece)board_array[from];
+    chess::Piece captured_piece = (flags & chess::FLAG_EP) 
+        ? (white_to_move ? chess::BP : chess::WP)
+        : (chess::Piece)board_array[to];
+
+    // Reset halfmove clock if it's a pawn move or capture
+    if (chess::type_of(moving_piece) == chess::PAWN || captured_piece != chess::NO_PIECE) {
+        halfmove_clock = 0;
+    } else {
+        halfmove_clock++;
+    }
+
+    // Update captured piece in undo info
+    if (captured_piece != chess::NO_PIECE) {
+        undo.captured_piece_and_halfmove = (undo.captured_piece_and_halfmove & 0xFFF0) | captured_piece;
+    }
+
+    // Clear en passant square
+    en_passant_sq = chess::SQUARE_NONE;
+    
+    // 3. Handle move types
+    if (flags == chess::FLAG_QUIET) {
+        move_piece_bb(moving_piece, from, to);
+    } 
+    else if (flags == chess::FLAG_CAPTURE) {
+        util::pop_bit(bitboard[captured_piece], to);
+        move_piece_bb(moving_piece, from, to);
+    }
+    else if (flags & chess::FLAG_PROMO) {
+        const chess::Piece promo_piece = (chess::Piece)mv.promo();
+        // Remove the pawn
+        util::pop_bit(bitboard[moving_piece], from);
+        board_array[from] = chess::NO_PIECE;
+        // If it was a capture, remove the captured piece
+        if (flags & chess::FLAG_CAPTURE) {
+            util::pop_bit(bitboard[captured_piece], to);
+        }
+        // Place the new piece
+        util::set_bit(bitboard[promo_piece], to);
+        board_array[to] = promo_piece;
+    }
+    else if (flags == chess::FLAG_EP) {
+        move_piece_bb(moving_piece, from, to);
+        const chess::Square captured_pawn_sq = white_to_move ? (chess::Square)(to - 8) : (chess::Square)(to + 8);
+        util::pop_bit(bitboard[captured_piece], captured_pawn_sq);
+        board_array[captured_pawn_sq] = chess::NO_PIECE;
+    }
+    else if (flags == chess::FLAG_CASTLE) {
+        move_piece_bb(moving_piece, from, to); // Move king
+        chess::Square rook_from, rook_to;
+        if (to == chess::G1) { rook_from = chess::H1; rook_to = chess::F1; }
+        else if (to == chess::C1) { rook_from = chess::A1; rook_to = chess::D1; }
+        else if (to == chess::G8) { rook_from = chess::H8; rook_to = chess::F8; }
+        else /* (to == C8) */ { rook_from = chess::A8; rook_to = chess::D8; }
+        move_piece_bb((chess::Piece)board_array[rook_from], rook_from, rook_to);
+    }
+    // Handle pawn double push to set en passant square
+    else if (chess::type_of(moving_piece) == chess::PAWN && chess::square_distance(from, to) == 2) {
+        move_piece_bb(moving_piece, from, to);
+        en_passant_sq = white_to_move ? (chess::Square)(from + 8) : (chess::Square)(from - 8);
+    }
+
+    // 4. Update castling rights with simple if statements
+    if (moving_piece == chess::WK) {
+        castle_rights &= chess::CastlingRights(~chess::WHITE_CASTLING);
+    } else if (moving_piece == chess::BK) {
+        castle_rights &= chess::CastlingRights(~chess::BLACK_CASTLING);
+    }
+
+    if (from == chess::A1 || to == chess::A1) {
+        castle_rights &= chess::CastlingRights(~chess::WHITE_QUEENSIDE);
+    }
+    if (from == chess::H1 || to == chess::H1) {
+        castle_rights &= chess::CastlingRights(~chess::WHITE_KINGSIDE);
+    }
+    if (from == chess::A8 || to == chess::A8) {
+        castle_rights &= chess::CastlingRights(~chess::BLACK_QUEENSIDE);
+    }
+    if (from == chess::H8 || to == chess::H8) {
+        castle_rights &= chess::CastlingRights(~chess::BLACK_KINGSIDE);
+    }
+    
+    // 5. Update king square if it moved
+    if (moving_piece == chess::WK) white_king_sq = to;
+    if (moving_piece == chess::BK) black_king_sq = to;
+
+    // 6. Update fullmove number and switch side
+    if (!white_to_move) fullmove_number++;
+    white_to_move = !white_to_move;
+
+    // 7. Update combined bitboards
+    update_occupancies();
+
+    // 8. Push state to undo stack
+    undo_stack.push_back(undo);
+}
+
+
+//-----------------------------------------------------------------------------
+// UNMAKE MOVE
+//-----------------------------------------------------------------------------
+void Board::unmake_move(const chess::Move &mv) {
+    // 1. Pop the last state from the undo stack
+    chess::Undo undo = undo_stack.back();
+    undo_stack.pop_back();
+
+    // 2. Extract move details
+    const chess::Square from = (chess::Square)mv.from();
+    const chess::Square to = (chess::Square)mv.to();
+    const uint16_t flags = mv.flags();
+
+    // Restore board state from undo info
+    castle_rights = (chess::CastlingRights)undo.prev_castle_rights;
+    en_passant_sq = (chess::Square)undo.prev_en_passant_sq;
+    halfmove_clock = undo.captured_piece_and_halfmove >> 4;
+
+    // Switch side back
+    white_to_move = !white_to_move;
+    if (!white_to_move) fullmove_number--;
+
+    chess::Piece moving_piece = (chess::Piece)board_array[to];
+    const chess::Piece captured_piece = (chess::Piece)(undo.captured_piece_and_halfmove & 0xF);
+
+    // 3. Handle move types in reverse
+    if (flags & chess::FLAG_PROMO) {
+        moving_piece = white_to_move ? chess::WP : chess::BP; // It was a pawn before promoting
+        const chess::Piece promo_piece = (chess::Piece)mv.promo();
+        
+        // Remove promoted piece
+        util::pop_bit(bitboard[promo_piece], to);
+        // Place pawn back
+        util::set_bit(bitboard[moving_piece], from);
+        board_array[from] = moving_piece;
+        board_array[to] = chess::NO_PIECE; // Clear the to square first
+        
+        // If it was a capture, restore the captured piece
+        if (flags & chess::FLAG_CAPTURE) {
+            util::set_bit(bitboard[captured_piece], to);
+            board_array[to] = captured_piece;
+        }
+    }
+    else if (flags == chess::FLAG_QUIET || (chess::type_of(moving_piece) == chess::PAWN && chess::square_distance(from, to) == 2)) {
+        restore_piece_bb(moving_piece, from, to);
+    }
+    else if (flags == chess::FLAG_CAPTURE) {
+        restore_piece_bb(moving_piece, from, to);
+        // Restore the captured piece
+        util::set_bit(bitboard[captured_piece], to);
+        board_array[to] = captured_piece;
+    }
+    else if (flags == chess::FLAG_EP) {
+        restore_piece_bb(moving_piece, from, to);
+        const chess::Square captured_pawn_sq = white_to_move ? (chess::Square)(to - 8) : (chess::Square)(to + 8);
+        // Restore captured pawn
+        util::set_bit(bitboard[captured_piece], captured_pawn_sq);
+        board_array[captured_pawn_sq] = captured_piece;
+    }
+    else if (flags == chess::FLAG_CASTLE) {
+        restore_piece_bb(moving_piece, from, to); // Move king back
+        chess::Square rook_from, rook_to;
+        if (to == chess::G1) { rook_from = chess::H1; rook_to = chess::F1; }
+        else if (to == chess::C1) { rook_from = chess::A1; rook_to = chess::D1; }
+        else if (to == chess::G8) { rook_from = chess::H8; rook_to = chess::F8; }
+        else /* (to == C8) */ { rook_from = chess::A8; rook_to = chess::D8; }
+        // Note: rook_from/rook_to are from the perspective of make_move
+        restore_piece_bb((chess::Piece)board_array[rook_to], rook_from, rook_to);
+    }
+
+    // 4. Update king square if it moved
+    if (moving_piece == chess::WK) white_king_sq = from;
+    if (moving_piece == chess::BK) black_king_sq = from;
+
+    // 5. Update combined bitboards
+    update_occupancies();
+}
+
 bool Board::square_attacked(chess::Square sq, bool by_white) const{
     
     chess::Color attackerColor = (by_white) ? chess::WHITE : chess::BLACK;
@@ -222,12 +407,12 @@ bool Board::square_attacked(chess::Square sq, bool by_white) const{
     if (chess::KingAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KING)]) return true;
 
     // 4. Orthogonal Sliders
-    if (chess::get_rook_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::ROOK)]) return true;
-    if (chess::get_rook_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
+    if (chess::get_orthogonal_slider_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::ROOK)]) return true;
+    if (chess::get_orthogonal_slider_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
 
     // 5. Diagnol Sliders
-    if (chess::get_bishop_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::BISHOP)]) return true;
-    if (chess::get_bishop_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
+    if (chess::get_diagonal_slider_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::BISHOP)]) return true;
+    if (chess::get_diagonal_slider_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
 
     return false;
 }

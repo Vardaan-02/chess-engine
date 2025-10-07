@@ -11,6 +11,7 @@
  */
 
 #include "types.h"
+#include "util.h"
 #include <iostream>
 
 // Include intrinsics headers for performance
@@ -21,64 +22,7 @@
 #include <intrin.h>
 #endif
 
-
 namespace chess {
-
-//-----------------------------------------------------------------------------
-// CONSTANTS
-//-----------------------------------------------------------------------------
-namespace Bitboard {
-    const uint64_t Empty = 0ULL;
-    const uint64_t Universal = ~0ULL;
-
-    const uint64_t FileA = 0x0101010101010101ULL;
-    const uint64_t FileB = FileA << 1;
-    const uint64_t FileC = FileA << 2;
-    const uint64_t FileD = FileA << 3;
-    const uint64_t FileE = FileA << 4;
-    const uint64_t FileF = FileA << 5;
-    const uint64_t FileG = FileA << 6;
-    const uint64_t FileH = FileA << 7;
-
-    const uint64_t Rank1 = 0xFFULL;
-    const uint64_t Rank2 = Rank1 << (8 * 1);
-    const uint64_t Rank3 = Rank1 << (8 * 2);
-    const uint64_t Rank4 = Rank1 << (8 * 3);
-    const uint64_t Rank5 = Rank1 << (8 * 4);
-    const uint64_t Rank6 = Rank1 << (8 * 5);
-    const uint64_t Rank7 = Rank1 << (8 * 6);
-    const uint64_t Rank8 = Rank1 << (8 * 7);
-
-    const uint64_t allEdgesBB = (Rank1 | Rank8 | FileA | FileH);
-    // --- ADD THESE TWO ARRAYS ---
-
-    // Lookup table to get a uint64_t of a square's file.
-    // e.g., File[E4] will return the uint64_t for File E.
-    constexpr uint64_t File[SQUARE_NB] = {
-        FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
-        FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
-        FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
-        FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
-        FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
-        FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
-        FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH,
-        FileA, FileB, FileC, FileD, FileE, FileF, FileG, FileH
-    };
-
-    // Lookup table to get a uint64_t of a square's rank.
-    // e.g., Rank[E4] will return the uint64_t for Rank 4.
-    constexpr uint64_t Rank[SQUARE_NB] = {
-        Rank1, Rank1, Rank1, Rank1, Rank1, Rank1, Rank1, Rank1,
-        Rank2, Rank2, Rank2, Rank2, Rank2, Rank2, Rank2, Rank2,
-        Rank3, Rank3, Rank3, Rank3, Rank3, Rank3, Rank3, Rank3,
-        Rank4, Rank4, Rank4, Rank4, Rank4, Rank4, Rank4, Rank4,
-        Rank5, Rank5, Rank5, Rank5, Rank5, Rank5, Rank5, Rank5,
-        Rank6, Rank6, Rank6, Rank6, Rank6, Rank6, Rank6, Rank6,
-        Rank7, Rank7, Rank7, Rank7, Rank7, Rank7, Rank7, Rank7,
-        Rank8, Rank8, Rank8, Rank8, Rank8, Rank8, Rank8, Rank8
-    };
-}
-
 
 //-----------------------------------------------------------------------------
 // PRE-COMPUTED ATTACK TABLES & INITIALIZATION
@@ -114,7 +58,7 @@ extern uint64_t RookAttacks[SQUARE_NB][4096];  // Max 2^12 relevant squares for 
 extern uint64_t BishopAttacks[SQUARE_NB][512]; // Max 2^9 relevant squares for bishops
 
 // Generates rook attacks using the magic uint64_t lookup.
-inline uint64_t get_rook_attacks(Square s, uint64_t occupancy) {
+inline uint64_t get_orthogonal_slider_attacks(Square s, uint64_t occupancy) {
     occupancy &= RookMagics[s].mask;
     occupancy *= RookMagics[s].magic;
     occupancy >>= RookMagics[s].shift;
@@ -122,18 +66,12 @@ inline uint64_t get_rook_attacks(Square s, uint64_t occupancy) {
 }
 
 // Generates bishop attacks using the magic uint64_t lookup.
-inline uint64_t get_bishop_attacks(Square s, uint64_t occupancy) {
+inline uint64_t get_diagonal_slider_attacks(Square s, uint64_t occupancy) {
     occupancy &= BishopMagics[s].mask;
     occupancy *= BishopMagics[s].magic;
     occupancy >>= BishopMagics[s].shift;
     return BishopAttacks[s][occupancy];
 }
-
-// Generates queen attacks by combining rook and bishop attacks.
-inline uint64_t get_queen_attacks(Square s, uint64_t occupancy) {
-    return get_rook_attacks(s, occupancy) | get_bishop_attacks(s, occupancy);
-}
-
 
 //-----------------------------------------------------------------------------
 // DEBUGGING
@@ -156,108 +94,3 @@ inline void print_bitboard(uint64_t bb) {
 }
 
 } // namespace chess
-
-namespace util{
-    inline uint64_t create_bitboard_from_square(chess::Square s){
-        return (ONE << s);
-    }
-
-    // Takes in a square and returns a square
-    inline chess::Square shift_square(chess::Square square, chess::Direction dir) {
-        if (square >= chess::SQUARE_NB) {
-            return chess::SQUARE_NONE;
-        }
-
-        const uint64_t b = 1ULL << square;
-
-        switch (dir) {
-            case chess::NORTH:
-                return (b & chess::Bitboard::Rank8) ? chess::SQUARE_NONE : (chess::Square)(square + 8);
-            case chess::SOUTH:
-                return (b & chess::Bitboard::Rank1) ? chess::SQUARE_NONE : (chess::Square)(square - 8);
-            case chess::EAST:
-                return (b & chess::Bitboard::FileH) ? chess::SQUARE_NONE : (chess::Square)(square + 1);
-            case chess::WEST:
-                return (b & chess::Bitboard::FileA) ? chess::SQUARE_NONE : (chess::Square)(square - 1);
-            case chess::NORTH_EAST:
-                return ((b & chess::Bitboard::Rank8) || (b & chess::Bitboard::FileH)) ? chess::SQUARE_NONE : (chess::Square)(square + 9);
-            case chess::NORTH_WEST:
-                return ((b & chess::Bitboard::Rank8) || (b & chess::Bitboard::FileA)) ? chess::SQUARE_NONE : (chess::Square)(square + 7);
-            case chess::SOUTH_EAST:
-                return ((b & chess::Bitboard::Rank1) || (b & chess::Bitboard::FileH)) ? chess::SQUARE_NONE : (chess::Square)(square - 7);
-            case chess::SOUTH_WEST:
-                return ((b & chess::Bitboard::Rank1) || (b & chess::Bitboard::FileA)) ? chess::SQUARE_NONE : (chess::Square)(square - 9);
-        }
-
-        return chess::SQUARE_NONE;
-    }
-
-    //Expects a bitboard with nothing on any of the edges of the direction to shift (trims the edges itself)
-    // Shifts a bitboard, correctly handling wrap-around for each direction.
-    inline uint64_t shift_board(uint64_t bitboard, chess::Direction dir)
-    {
-        switch(dir){
-            case chess::NORTH:      return bitboard << 8;
-            case chess::SOUTH:      return bitboard >> 8;
-            case chess::EAST:       return (bitboard & (~chess::Bitboard::FileH)) << 1;
-            case chess::WEST:       return (bitboard & (~chess::Bitboard::FileA)) >> 1;
-            case chess::NORTH_EAST: return (bitboard & (~chess::Bitboard::FileH)) << 9;
-            case chess::NORTH_WEST: return (bitboard & (~chess::Bitboard::FileA)) << 7;
-            case chess::SOUTH_EAST: return (bitboard & (~chess::Bitboard::FileH)) >> 7;
-            case chess::SOUTH_WEST: return (bitboard & (~chess::Bitboard::FileA)) >> 9;
-        }
-        return 0ULL; // Should not be reached
-    }
-
-    //-----------------------------------------------------------------------------
-    // BIT SCANNING (LSB, POPCOUNT)
-    //-----------------------------------------------------------------------------
-
-    // Count the number of set bits in a uint64_t
-    inline int count_bits(uint64_t bb) {
-        return __builtin_popcountll(bb);
-    }
-
-    // Get the index of the least significant bit (LSB)
-    inline chess::Square lsb(uint64_t bb) {
-        return chess::Square(__builtin_ctzll(bb));
-    }
-
-    // Get and remove the LSB from a uint64_t
-    inline chess::Square pop_lsb(uint64_t& bb) {
-        chess::Square s = lsb(bb);
-        bb &= bb - 1; // Efficiently removes the LSB
-        return s;
-    }
-
-
-    //-----------------------------------------------------------------------------
-    // CORE BIT MANIPULATION
-    //-----------------------------------------------------------------------------
-
-    // Check if a bit is set at a given square
-    constexpr bool get_bit(uint64_t bb, chess::Square s) {
-        return (bb >> s) & 1;
-    }
-
-    // Set a bit at a given square
-    inline void set_bit(uint64_t& bb, chess::Square s) {
-        bb |= (1ULL << s);
-    }
-
-    // Clear (pop) a bit at a given square
-    inline void pop_bit(uint64_t& bb, chess::Square s) {
-        bb &= ~(1ULL << s);
-    }
-
-    // get file and rank
-    inline int8_t get_file(chess::Square s)
-    {
-        return s%8;
-    }
-
-    inline int8_t get_rank(chess::Square s)
-    {
-        return s/8;
-    }
-};

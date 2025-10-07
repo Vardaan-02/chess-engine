@@ -141,7 +141,7 @@ private:
     inline void update_occupancies() {
         white_occupied = bitboard[chess::WP] | bitboard[chess::WN] | bitboard[chess::WB] | bitboard[chess::WR] | bitboard[chess::WQ] | bitboard[chess::WK];
         black_occupied = bitboard[chess::BP] | bitboard[chess::BN] | bitboard[chess::BB] | bitboard[chess::BR] | bitboard[chess::BQ] | bitboard[chess::BK];
-        occupied   = white_occupied | black_occupied;
+        occupied       = white_occupied | black_occupied;
     }
     //Assumes 0-Based indexing of the board, a1 = 0 (from bottom left). 0-based indexing for rank and files too
     inline chess::Square get_square_from_rank_file(int8_t rank, int8_t file) { return (chess::Square)(8 * rank + file); }

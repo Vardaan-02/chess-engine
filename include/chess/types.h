@@ -104,10 +104,10 @@ constexpr Piece make_piece(Color c, PieceType pt) {
 // Castling rights are stored as a 4-bit bitmask within a single byte.
 enum CastlingRights : uint8_t {
     NO_CASTLING    = 0,
-    WHITE_KINGSIDE = 1,          // 0001
-    WHITE_QUEENSIDE = 2,         // 0010
-    BLACK_KINGSIDE = 4,          // 0100
-    BLACK_QUEENSIDE = 8,         // 1000
+    BLACK_QUEENSIDE = 1,          // 0001
+    BLACK_KINGSIDE = 2,         // 0010
+    WHITE_QUEENSIDE = 4,          // 0100
+    WHITE_KINGSIDE = 8,         // 1000
 
     KING_SIDE = WHITE_KINGSIDE | BLACK_KINGSIDE,
     QUEEN_SIDE = WHITE_QUEENSIDE | BLACK_QUEENSIDE,
