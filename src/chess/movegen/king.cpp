@@ -29,7 +29,6 @@ void generate_king_moves_no_castle(const Board& B, std::vector<chess::Move>& mov
 
 void generate_king_moves_castle(const Board& B, std::vector<chess::Move>& moveList) {
     const chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;
-    const chess::Color oppColor = (color == chess::WHITE) ? chess::BLACK : chess::WHITE;
 
     const chess::Square king_start_sq = (color == chess::WHITE) ? chess::E1 : chess::E8;
     
@@ -44,20 +43,20 @@ void generate_king_moves_castle(const Board& B, std::vector<chess::Move>& moveLi
     const chess::Square qside_transit_sq2 = (color == chess::WHITE) ? chess::C1 : chess::C8; 
 
     //You can not castle out of check
-    if (B.square_attacked(king_start_sq, oppColor)) {
+    if (B.square_attacked(king_start_sq, color)) {
         return;
     }
-
+    
     // Kingside Castle
     if ((B.castle_rights & kside_right) && ((B.occupied & kside_empty_mask) == 0)) {
-        if (!B.square_attacked(kside_transit_sq, oppColor) && !B.square_attacked(kside_dest_sq, oppColor)) {
+        if (!B.square_attacked(kside_transit_sq, color) && !B.square_attacked(kside_dest_sq, color)) {
             moveList.push_back(chess::Move(king_start_sq, kside_dest_sq, chess::FLAG_CASTLE, chess::NO_PIECE));
         }
     }
 
     // Queenside Castle
     if ((B.castle_rights & qside_right) && ((B.occupied & qside_empty_mask) == 0)) {
-        if (!B.square_attacked(qside_transit_sq1, oppColor) && !B.square_attacked(qside_transit_sq2, oppColor)) {
+        if (!B.square_attacked(qside_transit_sq1, color) && !B.square_attacked(qside_transit_sq2, color)) {
             moveList.push_back(chess::Move(king_start_sq, qside_transit_sq2, chess::FLAG_CASTLE, chess::NO_PIECE));
         }
     }

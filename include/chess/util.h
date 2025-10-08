@@ -34,7 +34,7 @@ namespace util{
     const uint64_t FileF = FileA << 5;
     const uint64_t FileG = FileA << 6;
     const uint64_t FileH = FileA << 7;
-
+    
     const uint64_t Rank1 = 0xFFULL;
     const uint64_t Rank2 = Rank1 << (8 * 1);
     const uint64_t Rank3 = Rank1 << (8 * 2);
@@ -43,13 +43,15 @@ namespace util{
     const uint64_t Rank6 = Rank1 << (8 * 5);
     const uint64_t Rank7 = Rank1 << (8 * 6);
     const uint64_t Rank8 = Rank1 << (8 * 7);
-
-    constexpr uint64_t whiteKingSideBitboard = (chess::Square::F1 | chess::Square::G1);
-    constexpr uint64_t whiteQueenSideBitboard = (chess::Square::B1 | chess::Square::C1 | chess::Square::D1);
-    constexpr uint64_t blackKingSideBitboard = (chess::Square::F8 | chess::Square::G8);
-    constexpr uint64_t blackQueenSideBitboard = (chess::Square::B8 | chess::Square::C8 | chess::Square::D8);
-
-
+    
+    inline uint64_t create_bitboard_from_square(chess::Square s){
+        return (1ULL << s);
+    }
+    
+    const uint64_t whiteKingSideBitboard = create_bitboard_from_square(chess::Square::F1) | create_bitboard_from_square(chess::Square::G1);
+    const uint64_t whiteQueenSideBitboard = create_bitboard_from_square(chess::Square::B1) | create_bitboard_from_square(chess::Square::C1) | create_bitboard_from_square(chess::Square::D1);
+    const uint64_t blackKingSideBitboard = create_bitboard_from_square(chess::Square::F8) | create_bitboard_from_square(chess::Square::G8);
+    const uint64_t blackQueenSideBitboard = create_bitboard_from_square(chess::Square::B8) | create_bitboard_from_square(chess::Square::C8) | create_bitboard_from_square(chess::Square::D8);
 
     const uint64_t allEdgesBB = (Rank1 | Rank8 | FileA | FileH);
     // --- ADD THESE TWO ARRAYS ---
@@ -80,9 +82,6 @@ namespace util{
         Rank8, Rank8, Rank8, Rank8, Rank8, Rank8, Rank8, Rank8
     };
 
-    inline uint64_t create_bitboard_from_square(chess::Square s){
-        return (1ULL << s);
-    }
 
     // Takes in a square and returns a square
     inline chess::Square shift_square(chess::Square square, chess::Direction dir) {
