@@ -217,7 +217,7 @@ void Board::make_move(const chess::Move &mv) {
     const chess::Square from = (chess::Square)mv.from();
     const chess::Square to = (chess::Square)mv.to();
     const uint16_t flags = mv.flags();
-    
+
     const chess::Piece moving_piece = (chess::Piece)board_array[from];
     chess::Piece captured_piece = (flags & chess::FLAG_EP) 
         ? (white_to_move ? chess::BP : chess::WP)

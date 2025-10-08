@@ -53,29 +53,33 @@ void generate_push_double_push(const Board& B, std::vector<chess::Move>& moveLis
 
 void generate_pawn_captures(const Board& B, std::vector<chess::Move>& moveList)
 {
-    const chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;
-    const uint64_t promotion_rank_mask = color ? util::Rank2 : util::Rank7;
-    const std::array<chess::Direction, 2> capture_dirs = (B.white_to_move == chess::WHITE)
-        ? std::array{chess::NORTH_WEST, chess::NORTH_EAST}
-        : std::array{chess::SOUTH_WEST, chess::SOUTH_EAST};
+    const uint64_t our_pawns = B.white_to_move ? B.bitboard[chess::WP] : B.bitboard[chess::BP];
+    const uint64_t opponent_pieces = B.white_to_move ? B.black_occupied
+                                                     : B.white_occupied;
 
-    const uint64_t our_pawns = B.bitboard[chess::make_piece(color, chess::PAWN)];
-    const uint64_t opponent_pieces = B.bitboard[chess::make_piece(color, chess::PAWN)];
+    const uint64_t pawns_to_capture = B.white_to_move ? (our_pawns & ~util::Rank7)
+                                                     : (our_pawns & ~util::Rank2);
 
-    const uint64_t pawns_to_capture = our_pawns & ~promotion_rank_mask;
+    const chess::Direction dir1 = B.white_to_move ? chess::NORTH_WEST : chess::SOUTH_WEST;
+    const chess::Direction pull_dir1 = B.white_to_move ? chess::SOUTH_EAST : chess::NORTH_EAST;
+    uint64_t captures1 = util::shift_board(pawns_to_capture, dir1) & opponent_pieces;
 
-    for (const auto dir : capture_dirs)
+    while (captures1)
     {
-        uint64_t captures = util::shift_board(pawns_to_capture, dir) & opponent_pieces;
+        const chess::Square to = util::pop_lsb(captures1);
+        const chess::Square from = util::shift_square(to, pull_dir1);
+        moveList.push_back(chess::Move(from, to, chess::FLAG_CAPTURE, chess::NO_PIECE));
+    }
 
-        while (captures)
-        {
-            const chess::Square to = util::pop_lsb(captures);
-            
-            const chess::Square from = chess::Square(to - dir); 
-            
-            moveList.push_back(chess::Move(from, to, chess::FLAG_CAPTURE, chess::NO_PIECE));
-        }
+    const chess::Direction dir2 = B.white_to_move ? chess::NORTH_EAST : chess::SOUTH_EAST;
+    const chess::Direction pull_dir2 = B.white_to_move ? chess::SOUTH_WEST : chess::NORTH_WEST;
+    uint64_t captures2 = util::shift_board(pawns_to_capture, dir2) & opponent_pieces;
+
+    while (captures2)
+    {
+        const chess::Square to = util::pop_lsb(captures2);
+        const chess::Square from = util::shift_square(to, pull_dir2);
+        moveList.push_back(chess::Move(from, to, chess::FLAG_CAPTURE, chess::NO_PIECE));
     }
 }
 
@@ -118,24 +122,33 @@ void generate_pawn_ep_captures(const Board& B, std::vector<chess::Move>& moveLis
 
 void generate_pawn_promotion_captures(const Board& B, std::vector<chess::Move>& moveList)
 {
-    const chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;
-    const uint64_t our_pawns = B.bitboard[chess::make_piece(color, chess::PAWN)];
-    const uint64_t opponent_pieces = B.white_to_move ? B.black_occupied : B.white_occupied;
-    const uint64_t promoting_pawns = our_pawns & (B.white_to_move ? util::Rank7 : util::Rank2);
+    const uint64_t our_pawns = B.white_to_move ? B.bitboard[chess::WP] : B.bitboard[chess::BP];
+    const uint64_t opponent_pieces = B.white_to_move ? B.black_occupied
+                                                     : B.white_occupied;
+    
+    const uint64_t promoting_pawns = B.white_to_move ? (our_pawns & util::Rank7)
+                                                     : (our_pawns & util::Rank2);
 
-    const std::array<chess::Direction, 2> capture_dirs = B.white_to_move ? 
-        std::array{chess::NORTH_WEST, chess::NORTH_EAST} : 
-        std::array{chess::SOUTH_WEST, chess::SOUTH_EAST};
+    const chess::Direction dir1 = B.white_to_move ? chess::NORTH_WEST : chess::SOUTH_WEST;
+    const chess::Direction pull_dir1 = B.white_to_move ? chess::SOUTH_EAST : chess::NORTH_EAST;
+    uint64_t captures1 = util::shift_board(promoting_pawns, dir1) & opponent_pieces;
 
-    for (const auto dir : capture_dirs)
+    while (captures1)
     {
-        uint64_t captures = util::shift_board(promoting_pawns, dir) & opponent_pieces;
-        while (captures)
-        {
-            const chess::Square to = util::pop_lsb(captures);
-            const chess::Square from = chess::Square(to - dir);
-            add_pawn_promotion_moves(B, from, to, chess::FLAG_CAPTURE_PROMO, moveList);
-        }
+        const chess::Square to = util::pop_lsb(captures1);
+        const chess::Square from = util::shift_square(to, pull_dir1);
+        add_pawn_promotion_moves(B, from, to, chess::FLAG_CAPTURE_PROMO, moveList);
+    }
+
+    const chess::Direction dir2 = B.white_to_move ? chess::NORTH_EAST : chess::SOUTH_EAST;
+    const chess::Direction pull_dir2 = B.white_to_move ? chess::SOUTH_WEST : chess::NORTH_WEST;
+    uint64_t captures2 = util::shift_board(promoting_pawns, dir2) & opponent_pieces;
+
+    while (captures2)
+    {
+        const chess::Square to = util::pop_lsb(captures2);
+        const chess::Square from = util::shift_square(to, pull_dir2);
+        add_pawn_promotion_moves(B, from, to, chess::FLAG_CAPTURE_PROMO, moveList);
     }
 }
 

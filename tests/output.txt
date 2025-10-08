@@ -1,12 +1,29 @@
+
+    +------------------------+
+ 8 | r n b q k b n r |
+ 7 | p p p p p p p p |
+ 6 | . . . . . . . . |
+ 5 | . . . . . . . . |
+ 4 | . . . . . . . . |
+ 3 | . . . . . . . . |
+ 2 | P P P P P P P P |
+ 1 | R N B Q K B N R |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: KQkq
+En passant: -
+Halfmove clock: 0
+Fullmove number: 1
+Zobrist key: 0x0
+Material (W/B): 0 / 0
+
 ------------------------------------------
 Position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 ------------------------------------------
-perft(1) = 20 | Time: 0.000014s | NPS: 1448960
-perft(2) = 400 | Time: 0.000061s | NPS: 6558882
-perft(3) = 9128 | Time: 0.001152s | NPS: 7923590
-perft(4) = 207981 | Time: 0.025819s | NPS: 8055469
-perft(5) = 5287138 | Time: 0.671273s | NPS: 7876284
+perft(1) = 20 | Time: 0.000011s | NPS: 1819505
+perft(2) = 400 | Time: 0.000085s | NPS: 4696875
+perft(3) = 8862 | Time: 0.001747s | NPS: 5073207
+perft(4) = 196383 | Time: 0.023928s | NPS: 8207108
 
-8902
-197281
-4865609

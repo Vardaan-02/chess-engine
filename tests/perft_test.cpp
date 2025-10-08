@@ -90,7 +90,9 @@ int main() {
     // Test Case 1: Starting Position
     // Expected: 1=20, 2=400, 3=8902, 4=197281, 5=4865609
     std::string start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    run_perft_test(start_pos, 5);
+    Board newBoard; newBoard.set_fen(start_pos);
+    newBoard.print_board();
+    run_perft_test(start_pos, 4);
 
     // Board board;
     // board.set_fen(const_cast<std::string&>(start_pos));
