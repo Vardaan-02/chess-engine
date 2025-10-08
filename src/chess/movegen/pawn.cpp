@@ -47,7 +47,7 @@ void generate_push_double_push(const Board& B, std::vector<chess::Move>& moveLis
     {
         const chess::Square to = util::pop_lsb(destinations);
         const chess::Square from = util::shift_square(util::shift_square(to, pull_dir), pull_dir);
-        moveList.push_back(chess::Move(from, to, chess::FLAG_QUIET, chess::NO_PIECE));
+        moveList.push_back(chess::Move(from, to, chess::FLAG_DOUBLE_PUSH, chess::NO_PIECE));
     }
 }
 

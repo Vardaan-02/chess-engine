@@ -132,7 +132,8 @@ enum MoveFlag : uint16_t {
     FLAG_PROMO              = 1 << 1,
     FLAG_EP                 = 1 << 2,
     FLAG_CASTLE             = 1 << 3,
-    FLAG_CAPTURE_PROMO      = (FLAG_CAPTURE | FLAG_PROMO)
+    FLAG_CAPTURE_PROMO      = (FLAG_CAPTURE | FLAG_PROMO),
+    FLAG_DOUBLE_PUSH        = 1 << 4
 };
 
 enum Direction : uint8_t {

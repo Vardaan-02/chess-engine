@@ -1,5 +1,6 @@
 #include "bitboard.h"
 #include "types.h"
+#include <iomanip>
 
 /**
  * @file uint64_t.cpp
@@ -37,148 +38,244 @@ uint64_t BishopAttacks[SQUARE_NB][512];
 //-----------------------------------------------------------------------------
 namespace {
 
+const uint64_t magicmoves_r_magics[64] = {
+    0x0080001020400080ULL, 0x0040001000200040ULL, 0x0080081000200080ULL, 0x0080040800100080ULL,
+    0x0080020400080080ULL, 0x0080010200040080ULL, 0x0080008001000200ULL, 0x0080002040800100ULL,
+    0x0000800020400080ULL, 0x0000400020005000ULL, 0x0000801000200080ULL, 0x0000800800100080ULL,
+    0x0000800400080080ULL, 0x0000800200040080ULL, 0x0000800100020080ULL, 0x0000800040800100ULL,
+    0x0000208000400080ULL, 0x0000404000201000ULL, 0x0000808010002000ULL, 0x0000808008001000ULL,
+    0x0000808004000800ULL, 0x0000808002000400ULL, 0x0000010100020004ULL, 0x0000020000408104ULL,
+    0x0000208080004000ULL, 0x0000200040005000ULL, 0x0000100080200080ULL, 0x0000080080100080ULL,
+    0x0000040080080080ULL, 0x0000020080040080ULL, 0x0000010080800200ULL, 0x0000800080004100ULL,
+    0x0000204000800080ULL, 0x0000200040401000ULL, 0x0000100080802000ULL, 0x0000080080801000ULL,
+    0x0000040080800800ULL, 0x0000020080800400ULL, 0x0000020001010004ULL, 0x0000800040800100ULL,
+    0x0000204000808000ULL, 0x0000200040008080ULL, 0x0000100020008080ULL, 0x0000080010008080ULL,
+    0x0000040008008080ULL, 0x0000020004008080ULL, 0x0000010002008080ULL, 0x0000004081020004ULL,
+    0x0000204000800080ULL, 0x0000200040008080ULL, 0x0000100020008080ULL, 0x0000080010008080ULL,
+    0x0000040008008080ULL, 0x0000020004008080ULL, 0x0000800100020080ULL, 0x0000800041000080ULL,
+    0x00FFFCDDFCED714AULL, 0x007FFCDDFCED714AULL, 0x003FFFCDFFD88096ULL, 0x0000040810002101ULL,
+    0x0001000204080011ULL, 0x0001000204000801ULL, 0x0001000082000401ULL, 0x0001FFFAABFAD1A2ULL
+};
+
+const uint64_t magicmoves_b_magics[64] = {
+    0x0002020202020200ULL, 0x0002020202020000ULL, 0x0004010202000000ULL, 0x0004040080000000ULL,
+    0x0001104000000000ULL, 0x0000821040000000ULL, 0x0000410410400000ULL, 0x0000104104104000ULL,
+    0x0000040404040400ULL, 0x0000020202020200ULL, 0x0000040102020000ULL, 0x0000040400800000ULL,
+    0x0000011040000000ULL, 0x0000008210400000ULL, 0x0000004104104000ULL, 0x0000002082082000ULL,
+    0x0004000808080800ULL, 0x0002000404040400ULL, 0x0001000202020200ULL, 0x0000800802004000ULL,
+    0x0000800400A00000ULL, 0x0000200100884000ULL, 0x0000400082082000ULL, 0x0000200041041000ULL,
+    0x0002080010101000ULL, 0x0001040008080800ULL, 0x0000208004010400ULL, 0x0000404004010200ULL,
+    0x0000840000802000ULL, 0x0000404002011000ULL, 0x0000808001041000ULL, 0x0000404000820800ULL,
+    0x0001041000202000ULL, 0x0000820800101000ULL, 0x0000104400080800ULL, 0x0000020080080080ULL,
+    0x0000404040040100ULL, 0x0000808100020100ULL, 0x0001010100020800ULL, 0x0000808080010400ULL,
+    0x0000820820004000ULL, 0x0000410410002000ULL, 0x0000082088001000ULL, 0x0000002011000800ULL,
+    0x0000080100400400ULL, 0x0001010101000200ULL, 0x0002020202000400ULL, 0x0001010101000200ULL,
+    0x0000410410400000ULL, 0x0000208208200000ULL, 0x0000002084100000ULL, 0x0000000020880000ULL,
+    0x0000001002020000ULL, 0x0000040408020000ULL, 0x0004040404040000ULL, 0x0002020202020000ULL,
+    0x0000104104104000ULL, 0x0000002082082000ULL, 0x0000000020841000ULL, 0x0000000000208800ULL,
+    0x0000000010020200ULL, 0x0000000404080200ULL, 0x0000040404040400ULL, 0x0002020202020200ULL
+};
+
+const uint8_t magicmoves_r_shifts[64] = 
+{
+	52, 53, 53, 53, 53, 53, 53, 52,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 54, 54, 54, 54, 53,
+	53, 54, 54, 53, 53, 53, 53, 53
+};
+
+const uint8_t magicmoves_b_shifts[64] = 
+{
+	58, 59, 59, 59, 59, 59, 59, 58,
+	59, 59, 59, 59, 59, 59, 59, 59,
+	59, 59, 57, 57, 57, 57, 59, 59,
+	59, 59, 57, 55, 55, 57, 59, 59,
+	59, 59, 57, 55, 55, 57, 59, 59,
+	59, 59, 57, 57, 57, 57, 59, 59,
+	59, 59, 59, 59, 59, 59, 59, 59,
+	58, 59, 59, 59, 59, 59, 59, 58
+};
+
+
+const uint64_t rook_masks[64] = {
+    0x01010101010101FEULL, 0x02020202020202FDULL, 0x04040404040404FBULL, 0x08080808080808F7ULL,
+    0x10101010101010EFULL, 0x20202020202020DFULL, 0x40404040404040BFULL, 0x808080808080807FULL,
+    0x010101010101FE01ULL, 0x020202020202FD02ULL, 0x040404040404FB04ULL, 0x080808080808F708ULL,
+    0x101010101010EF10ULL, 0x202020202020DF20ULL, 0x404040404040BF40ULL, 0x8080808080807F80ULL,
+    0x0101010101FE0101ULL, 0x0202020202FD0202ULL, 0x0404040404FB0404ULL, 0x0808080808F70808ULL,
+    0x1010101010EF1010ULL, 0x2020202020DF2020ULL, 0x4040404040BF4040ULL, 0x80808080807F8080ULL,
+    0x01010101FE010101ULL, 0x02020202FD020202ULL, 0x04040404FB040404ULL, 0x08080808F7080808ULL,
+    0x10101010EF101010ULL, 0x20202020DF202020ULL, 0x40404040BF404040ULL, 0x808080807F808080ULL,
+    0x010101FE01010101ULL, 0x020202FD02020202ULL, 0x040404FB04040404ULL, 0x080808F708080808ULL,
+    0x101010EF10101010ULL, 0x202020DF20202020ULL, 0x404040BF40404040ULL, 0x8080807F80808080ULL,
+    0x0101FE0101010101ULL, 0x0202FD0202020202ULL, 0x0404FB0404040404ULL, 0x0808F70808080808ULL,
+    0x1010EF1010101010ULL, 0x2020DF2020202020ULL, 0x4040BF4040404040ULL, 0x80807F8080808080ULL,
+    0x01FE010101010101ULL, 0x02FD020202020202ULL, 0x04FB040404040404ULL, 0x08F7080808080808ULL,
+    0x10EF101010101010ULL, 0x20DF202020202020ULL, 0x40BF404040404040ULL, 0x807F808080808080ULL,
+    0xFE01010101010101ULL, 0xFD02020202020202ULL, 0xFB04040404040404ULL, 0xF708080808080808ULL,
+    0xEF10101010101010ULL, 0xDF20202020202020ULL, 0xBF40404040404040ULL, 0x7F80808080808080ULL
+};
+
+const uint64_t bishop_masks[64] = {
+    0x40201008040200ULL,   0x402010080500ULL,     0x4020110a00ULL,       0x41221400ULL,
+    0x102442800ULL,        0x10204085000ULL,      0x1020408102000ULL,    0x2040810204000ULL,
+    0x20100804020002ULL,   0x40201008050005ULL,   0x4020110a000aULL,     0x4122140014ULL,
+    0x10244280028ULL,      0x1020408500050ULL,    0x2040810200020ULL,    0x4081020400040ULL,
+    0x10080402000204ULL,   0x20100805000508ULL,   0x4020110a000a11ULL,   0x412214001422ULL,
+    0x1024428002844ULL,    0x2040850005008ULL,    0x4081020002010ULL,    0x8102040004020ULL,
+    0x8040200020408ULL,    0x10080500050810ULL,   0x20110a000a1120ULL,   0x41221400142241ULL,
+    0x2442800284402ULL,    0x4085000500804ULL,    0x8102000201008ULL,    0x10204000402010ULL,
+    0x4020002040810ULL,    0x8050005081020ULL,    0x110a000a112040ULL,   0x22140014224100ULL,
+    0x44280028440201ULL,   0x8500050080402ULL,    0x10200020100804ULL,   0x20400040201008ULL,
+    0x2000204081020ULL,    0x5000508102040ULL,    0xa000a11204000ULL,    0x14001422410000ULL,
+    0x28002844020100ULL,   0x50005008040201ULL,   0x20002010080402ULL,   0x40004020100804ULL,
+    0x20408102040ULL,      0x50810204000ULL,      0xa1120400000ULL,      0x142241000000ULL,
+
+    0x284402010000ULL,     0x500804020100ULL,     0x201008040201ULL,     0x402010080402ULL,
+    0x2040810204000ULL,    0x5081020400000ULL,    0xa112040000000ULL,    0x14224100000000ULL,
+    0x28440201000000ULL,   0x50080402010000ULL,   0x20100804020100ULL,   0x40201008040201ULL
+};
+
+
 // Pre-computed magic numbers for rooks and bishops. These are standard values.
+// Initialize the ROOK_MAGIC_INIT array of structs
 const Magic ROOK_MAGICS_INIT[64] = {
-    {0x01010101010101FEULL, 0x8a80104000800020ULL, 52},
-    {0x02020202020202FDULL, 0x4100200040080400ULL, 53},
-    {0x04040404040404FBULL, 0x2040010000200008ULL, 53},
-    {0x08080808080808F7ULL, 0x20800040000ULL, 53},
-    {0x10101010101010EFULL, 0x4804000800100ULL, 53},
-    {0x20202020202020DFULL, 0x12000200010040ULL, 53},
-    {0x40404040404040BFULL, 0x401004000800ULL, 53},
-    {0x808080808080807FULL, 0x408000802000100ULL, 52},
-
-    {0x010101010101FE01ULL, 0x40200010080ULL, 53},
-    {0x020202020202FD02ULL, 0x20080080401000ULL, 54},
-    {0x040404040404FB04ULL, 0x4002000040080ULL, 54},
-    {0x080808080808F708ULL, 0x10000100004000ULL, 54},
-    {0x101010101010EF10ULL, 0x2000002000010ULL, 54},
-    {0x202020202020DF20ULL, 0x4000001000020ULL, 54},
-    {0x404040404040BF40ULL, 0x8000004000080ULL, 54},
-    {0x8080808080807F80ULL, 0x800001004000ULL, 53},
-
-    {0x0101010101FE0101ULL, 0x8000402000100ULL, 53},
-    {0x0202020202FD0202ULL, 0x10002000080040ULL, 54},
-    {0x0404040404FB0404ULL, 0x2000100004008ULL, 54},
-    {0x0808080808F70808ULL, 0x100008000200ULL, 54},
-    {0x1010101010EF1010ULL, 0x40001002000ULL, 54},
-    {0x2020202020DF2020ULL, 0x80004000100ULL, 54},
-    {0x4040404040BF4040ULL, 0x20000800040ULL, 54},
-    {0x80808080807F8080ULL, 0x10000100200ULL, 53},
-
-    {0x01010101FE010101ULL, 0x8000804000200ULL, 53},
-    {0x02020202FD020202ULL, 0x20004000100080ULL, 54},
-    {0x04040404FB040404ULL, 0x4000800020001ULL, 54},
-    {0x08080808F7080808ULL, 0x800040001000ULL, 54},
-    {0x10101010EF101010ULL, 0x10000800020ULL, 54},
-    {0x20202020DF202020ULL, 0x40000100008ULL, 54},
-    {0x40404040BF404040ULL, 0x80000200010ULL, 54},
-    {0x808080807F808080ULL, 0x80000040010ULL, 53},
-
-    {0x010101FE01010101ULL, 0x2000800080400ULL, 53},
-    {0x020202FD02020202ULL, 0x10004000200080ULL, 54},
-    {0x040404FB04040404ULL, 0x4000200010001ULL, 54},
-    {0x080808F708080808ULL, 0x80001000040ULL, 54},
-    {0x101010EF10101010ULL, 0x10000400008ULL, 54},
-    {0x202020DF20202020ULL, 0x20000800010ULL, 54},
-    {0x404040BF40404040ULL, 0x400001000020ULL, 54},
-    {0x8080807F80808080ULL, 0x80000080010ULL, 53},
-
-    {0x0101FE0101010101ULL, 0x4000802000400ULL, 53},
-    {0x0202FD0202020202ULL, 0x80002000040010ULL, 54},
-    {0x0404FB0404040404ULL, 0x10001000020004ULL, 54},
-    {0x0808F70808080808ULL, 0x400008000100ULL, 54},
-    {0x1010EF1010101010ULL, 0x80001000020ULL, 54},
-    {0x2020DF2020202020ULL, 0x10000400008ULL, 54},
-    {0x4040BF4040404040ULL, 0x20000800010ULL, 54},
-    {0x80807F8080808080ULL, 0x80000040010ULL, 53},
-
-    {0x01FE010101010101ULL, 0x1000804000200ULL, 52},
-    {0x02FD020202020202ULL, 0x20001000080040ULL, 53},
-    {0x04FB040404040404ULL, 0x40000800020001ULL, 53},
-    {0x08F7080808080808ULL, 0x100004000080ULL, 53},
-    {0x10EF101010101010ULL, 0x200008000100ULL, 53},
-    {0x20DF202020202020ULL, 0x400001000020ULL, 53},
-    {0x40BF404040404040ULL, 0x800002000010ULL, 53},
-    {0x807F808080808080ULL, 0x40000080010ULL, 52},
-
-    {0xFE01010101010101ULL, 0x1000804000200ULL, 52},
-    {0xFD02020202020202ULL, 0x20001000080040ULL, 53},
-    {0xFB04040404040404ULL, 0x40000800020001ULL, 53},
-    {0xF708080808080808ULL, 0x100004000080ULL, 53},
-    {0xEF10101010101010ULL, 0x200008000100ULL, 53},
-    {0xDF20202020202020ULL, 0x400001000020ULL, 53},
-    {0xBF40404040404040ULL, 0x800002000010ULL, 53},
-    {0x7F80808080808080ULL, 0x40000080010ULL, 52},
+    {rook_masks[ 0], magicmoves_r_magics[ 0], magicmoves_r_shifts[ 0]},
+    {rook_masks[ 1], magicmoves_r_magics[ 1], magicmoves_r_shifts[ 1]},
+    {rook_masks[ 2], magicmoves_r_magics[ 2], magicmoves_r_shifts[ 2]},
+    {rook_masks[ 3], magicmoves_r_magics[ 3], magicmoves_r_shifts[ 3]},
+    {rook_masks[ 4], magicmoves_r_magics[ 4], magicmoves_r_shifts[ 4]},
+    {rook_masks[ 5], magicmoves_r_magics[ 5], magicmoves_r_shifts[ 5]},
+    {rook_masks[ 6], magicmoves_r_magics[ 6], magicmoves_r_shifts[ 6]},
+    {rook_masks[ 7], magicmoves_r_magics[ 7], magicmoves_r_shifts[ 7]},
+    {rook_masks[ 8], magicmoves_r_magics[ 8], magicmoves_r_shifts[ 8]},
+    {rook_masks[ 9], magicmoves_r_magics[ 9], magicmoves_r_shifts[ 9]},
+    {rook_masks[10], magicmoves_r_magics[10], magicmoves_r_shifts[10]},
+    {rook_masks[11], magicmoves_r_magics[11], magicmoves_r_shifts[11]},
+    {rook_masks[12], magicmoves_r_magics[12], magicmoves_r_shifts[12]},
+    {rook_masks[13], magicmoves_r_magics[13], magicmoves_r_shifts[13]},
+    {rook_masks[14], magicmoves_r_magics[14], magicmoves_r_shifts[14]},
+    {rook_masks[15], magicmoves_r_magics[15], magicmoves_r_shifts[15]},
+    {rook_masks[16], magicmoves_r_magics[16], magicmoves_r_shifts[16]},
+    {rook_masks[17], magicmoves_r_magics[17], magicmoves_r_shifts[17]},
+    {rook_masks[18], magicmoves_r_magics[18], magicmoves_r_shifts[18]},
+    {rook_masks[19], magicmoves_r_magics[19], magicmoves_r_shifts[19]},
+    {rook_masks[20], magicmoves_r_magics[20], magicmoves_r_shifts[20]},
+    {rook_masks[21], magicmoves_r_magics[21], magicmoves_r_shifts[21]},
+    {rook_masks[22], magicmoves_r_magics[22], magicmoves_r_shifts[22]},
+    {rook_masks[23], magicmoves_r_magics[23], magicmoves_r_shifts[23]},
+    {rook_masks[24], magicmoves_r_magics[24], magicmoves_r_shifts[24]},
+    {rook_masks[25], magicmoves_r_magics[25], magicmoves_r_shifts[25]},
+    {rook_masks[26], magicmoves_r_magics[26], magicmoves_r_shifts[26]},
+    {rook_masks[27], magicmoves_r_magics[27], magicmoves_r_shifts[27]},
+    {rook_masks[28], magicmoves_r_magics[28], magicmoves_r_shifts[28]},
+    {rook_masks[29], magicmoves_r_magics[29], magicmoves_r_shifts[29]},
+    {rook_masks[30], magicmoves_r_magics[30], magicmoves_r_shifts[30]},
+    {rook_masks[31], magicmoves_r_magics[31], magicmoves_r_shifts[31]},
+    {rook_masks[32], magicmoves_r_magics[32], magicmoves_r_shifts[32]},
+    {rook_masks[33], magicmoves_r_magics[33], magicmoves_r_shifts[33]},
+    {rook_masks[34], magicmoves_r_magics[34], magicmoves_r_shifts[34]},
+    {rook_masks[35], magicmoves_r_magics[35], magicmoves_r_shifts[35]},
+    {rook_masks[36], magicmoves_r_magics[36], magicmoves_r_shifts[36]},
+    {rook_masks[37], magicmoves_r_magics[37], magicmoves_r_shifts[37]},
+    {rook_masks[38], magicmoves_r_magics[38], magicmoves_r_shifts[38]},
+    {rook_masks[39], magicmoves_r_magics[39], magicmoves_r_shifts[39]},
+    {rook_masks[40], magicmoves_r_magics[40], magicmoves_r_shifts[40]},
+    {rook_masks[41], magicmoves_r_magics[41], magicmoves_r_shifts[41]},
+    {rook_masks[42], magicmoves_r_magics[42], magicmoves_r_shifts[42]},
+    {rook_masks[43], magicmoves_r_magics[43], magicmoves_r_shifts[43]},
+    {rook_masks[44], magicmoves_r_magics[44], magicmoves_r_shifts[44]},
+    {rook_masks[45], magicmoves_r_magics[45], magicmoves_r_shifts[45]},
+    {rook_masks[46], magicmoves_r_magics[46], magicmoves_r_shifts[46]},
+    {rook_masks[47], magicmoves_r_magics[47], magicmoves_r_shifts[47]},
+    {rook_masks[48], magicmoves_r_magics[48], magicmoves_r_shifts[48]},
+    {rook_masks[49], magicmoves_r_magics[49], magicmoves_r_shifts[49]},
+    {rook_masks[50], magicmoves_r_magics[50], magicmoves_r_shifts[50]},
+    {rook_masks[51], magicmoves_r_magics[51], magicmoves_r_shifts[51]},
+    {rook_masks[52], magicmoves_r_magics[52], magicmoves_r_shifts[52]},
+    {rook_masks[53], magicmoves_r_magics[53], magicmoves_r_shifts[53]},
+    {rook_masks[54], magicmoves_r_magics[54], magicmoves_r_shifts[54]},
+    {rook_masks[55], magicmoves_r_magics[55], magicmoves_r_shifts[55]},
+    {rook_masks[56], magicmoves_r_magics[56], magicmoves_r_shifts[56]},
+    {rook_masks[57], magicmoves_r_magics[57], magicmoves_r_shifts[57]},
+    {rook_masks[58], magicmoves_r_magics[58], magicmoves_r_shifts[58]},
+    {rook_masks[59], magicmoves_r_magics[59], magicmoves_r_shifts[59]},
+    {rook_masks[60], magicmoves_r_magics[60], magicmoves_r_shifts[60]},
+    {rook_masks[61], magicmoves_r_magics[61], magicmoves_r_shifts[61]},
+    {rook_masks[62], magicmoves_r_magics[62], magicmoves_r_shifts[62]},
+    {rook_masks[63], magicmoves_r_magics[63], magicmoves_r_shifts[63]},
 };
 
 const Magic BISHOP_MAGICS_INIT[64] = {
-    {0x40201008040200ULL, 0x2101002004448ULL, 58}, // 0 (bits=6 tries=1330)
-    {0x402010080500ULL, 0x30202004401806eULL, 58}, // 1 (bits=6 tries=248)
-    {0x4020110a00ULL, 0x108008020840141ULL, 58}, // 2 (bits=6 tries=403)
-    {0x41221400ULL, 0xa4240090030001ULL, 58}, // 3 (bits=6 tries=200)
-    {0x102442800ULL, 0x1004602000000030ULL, 58}, // 4 (bits=6 tries=207)
-    {0x10204085000ULL, 0x404220802004090ULL, 58}, // 5 (bits=6 tries=138)
-    {0x1020408102000ULL, 0x41c420201a00080ULL, 58}, // 6 (bits=6 tries=89)
-    {0x2040810204000ULL, 0x420e01c2021000ULL, 58}, // 7 (bits=6 tries=11897)
-    {0x20100804020002ULL, 0x4226840108010dULL, 58}, // 8 (bits=6 tries=68)
-    {0x40201008050005ULL, 0x20801000a0802200ULL, 56}, // 9 (bits=8 tries=8891)
-    {0x4020110a000aULL, 0x88140104010001ULL, 56}, // 10 (bits=8 tries=165)
-    {0x4122140014ULL, 0x420822800080ULL, 56}, // 11 (bits=8 tries=216)
-    {0x10244280028ULL, 0x10041004020ULL, 56}, // 12 (bits=8 tries=135)
-    {0x1020408500050ULL, 0x1108080400000ULL, 56}, // 13 (bits=8 tries=352)
-    {0x2040810200020ULL, 0x100b0100821800ULL, 58}, // 14 (bits=6 tries=926)
-    {0x4081020400040ULL, 0x6c08a50021010800ULL, 58}, // 15 (bits=6 tries=943)
-    {0x10080402000204ULL, 0x48012002208120ULL, 58}, // 16 (bits=6 tries=323)
-    {0x20100805000508ULL, 0x42502008101000aULL, 56}, // 17 (bits=8 tries=519)
-    {0x4020110a000a11ULL, 0x6348000080210020ULL, 54}, // 18 (bits=10 tries=47165)
-    {0x412214001422ULL, 0x104c04000600ULL, 54}, // 19 (bits=10 tries=593)
-    {0x1024428002844ULL, 0x101088040002ULL, 54}, // 20 (bits=10 tries=557)
-    {0x2040850005008ULL, 0xa000060840080ULL, 56}, // 21 (bits=8 tries=1346)
-    {0x4081020002010ULL, 0x5001800c1402a800ULL, 58}, // 22 (bits=6 tries=1011)
-    {0x8102040004020ULL, 0x4280701091002ULL, 58}, // 23 (bits=6 tries=551)
-    {0x8040200020408ULL, 0x40080c00c1210800ULL, 58}, // 24 (bits=6 tries=238)
-    {0x10080500050810ULL, 0x424800440300ULL, 56}, // 25 (bits=8 tries=2030)
-    {0x20110a000a1120ULL, 0x3200060084001404ULL, 54}, // 26 (bits=10 tries=187)
-    {0x41221400142241ULL, 0x80010020040100ULL, 52}, // 27 (bits=12 tries=161699)
-    {0x2442800284402ULL, 0x4702000100400ULL, 54}, // 28 (bits=10 tries=17127)
-    {0x4085000500804ULL, 0x2102000109001ULL, 56}, // 29 (bits=8 tries=1319)
-    {0x8102000201008ULL, 0x20021024040402c2ULL, 58}, // 30 (bits=6 tries=615)
-    {0x10204000402010ULL, 0x2011104014140420ULL, 58}, // 31 (bits=6 tries=405)
-    {0x4020002040810ULL, 0x1011104000280104ULL, 58}, // 32 (bits=6 tries=481)
-    {0x8050005081020ULL, 0x802180a001100140ULL, 56}, // 33 (bits=8 tries=576)
-    {0x110a000a112040ULL, 0x200020240048010ULL, 54}, // 34 (bits=10 tries=1276)
-    {0x22140014224100ULL, 0x10040040400ULL, 54}, // 35 (bits=10 tries=6675)
-    {0x44280028440201ULL, 0x8000004a0000c010ULL, 54}, // 36 (bits=10 tries=2716)
-    {0x8500050080402ULL, 0x2002200230280ULL, 56}, // 37 (bits=8 tries=455)
-    {0x10200020100804ULL, 0x8144891040084ULL, 58}, // 38 (bits=6 tries=436)
-    {0x20400040201008ULL, 0x40488140008042ULL, 58}, // 39 (bits=6 tries=216)
-    {0x2000204081020ULL, 0x8000481c04080900ULL, 58}, // 40 (bits=6 tries=485)
-    {0x5000508102040ULL, 0x180082004428ULL, 56}, // 41 (bits=8 tries=43)
-    {0xa000a11204000ULL, 0x1808140090200802ULL, 56}, // 42 (bits=8 tries=487)
-    {0x14001422410000ULL, 0x20000483040180ULL, 56}, // 43 (bits=8 tries=2697)
-    {0x28002844020100ULL, 0x1000204044012040ULL, 56}, // 44 (bits=8 tries=378)
-    {0x50005008040201ULL, 0x4000428122010050ULL, 56}, // 45 (bits=8 tries=1816)
-    {0x20002010080402ULL, 0x1040132022436ULL, 58}, // 46 (bits=6 tries=47)
-    {0x40004020100804ULL, 0x22020404101020ULL, 58}, // 47 (bits=6 tries=523)
-    {0x20408102040ULL, 0x2004404104249001ULL, 58}, // 48 (bits=6 tries=222)
-    {0x50810204000ULL, 0x8002404402012120ULL, 58}, // 49 (bits=6 tries=15)
-    {0xa1120400000ULL, 0x100010100421028ULL, 58}, // 50 (bits=6 tries=725)
-    {0x142241000000ULL, 0x200200022080040ULL, 58}, // 51 (bits=6 tries=97)
-    {0x284402010000ULL, 0x1408024010208308ULL, 58}, // 52 (bits=6 tries=21)
-    {0x500804020100ULL, 0x22004010004ULL, 58}, // 53 (bits=6 tries=177)
-    {0x201008040201ULL, 0x480049005104900ULL, 58}, // 54 (bits=6 tries=169)
-    {0x402010080402ULL, 0x4004340062026002ULL, 58}, // 55 (bits=6 tries=22)
-    {0x2040810204000ULL, 0x3154140103086000ULL, 58}, // 56 (bits=6 tries=20464)
-    {0x5081020400000ULL, 0x800020208840c02ULL, 58}, // 57 (bits=6 tries=398)
-    {0xa112040000000ULL, 0x8000404884028806ULL, 58}, // 58 (bits=6 tries=91)
-    {0x14224100000000ULL, 0x200128000430200ULL, 58}, // 59 (bits=6 tries=158)
-    {0x28440201000000ULL, 0x1020800600c1400ULL, 58}, // 60 (bits=6 tries=3)
-    {0x50080402010000ULL, 0x4d0006012008206ULL, 58}, // 61 (bits=6 tries=123)
-    {0x20100804020100ULL, 0x181905020480ULL, 58}, // 62 (bits=6 tries=1437)
-    {0x40201008040201ULL, 0x80000102026c1820ULL, 57}, // 63 (bits=7 tries=1282)
+    {bishop_masks[ 0], magicmoves_b_magics[ 0], magicmoves_b_shifts[ 0]},
+    {bishop_masks[ 1], magicmoves_b_magics[ 1], magicmoves_b_shifts[ 1]},
+    {bishop_masks[ 2], magicmoves_b_magics[ 2], magicmoves_b_shifts[ 2]},
+    {bishop_masks[ 3], magicmoves_b_magics[ 3], magicmoves_b_shifts[ 3]},
+    {bishop_masks[ 4], magicmoves_b_magics[ 4], magicmoves_b_shifts[ 4]},
+    {bishop_masks[ 5], magicmoves_b_magics[ 5], magicmoves_b_shifts[ 5]},
+    {bishop_masks[ 6], magicmoves_b_magics[ 6], magicmoves_b_shifts[ 6]},
+    {bishop_masks[ 7], magicmoves_b_magics[ 7], magicmoves_b_shifts[ 7]},
+    {bishop_masks[ 8], magicmoves_b_magics[ 8], magicmoves_b_shifts[ 8]},
+    {bishop_masks[ 9], magicmoves_b_magics[ 9], magicmoves_b_shifts[ 9]},
+    {bishop_masks[10], magicmoves_b_magics[10], magicmoves_b_shifts[10]},
+    {bishop_masks[11], magicmoves_b_magics[11], magicmoves_b_shifts[11]},
+    {bishop_masks[12], magicmoves_b_magics[12], magicmoves_b_shifts[12]},
+    {bishop_masks[13], magicmoves_b_magics[13], magicmoves_b_shifts[13]},
+    {bishop_masks[14], magicmoves_b_magics[14], magicmoves_b_shifts[14]},
+    {bishop_masks[15], magicmoves_b_magics[15], magicmoves_b_shifts[15]},
+    {bishop_masks[16], magicmoves_b_magics[16], magicmoves_b_shifts[16]},
+    {bishop_masks[17], magicmoves_b_magics[17], magicmoves_b_shifts[17]},
+    {bishop_masks[18], magicmoves_b_magics[18], magicmoves_b_shifts[18]},
+    {bishop_masks[19], magicmoves_b_magics[19], magicmoves_b_shifts[19]},
+    {bishop_masks[20], magicmoves_b_magics[20], magicmoves_b_shifts[20]},
+    {bishop_masks[21], magicmoves_b_magics[21], magicmoves_b_shifts[21]},
+    {bishop_masks[22], magicmoves_b_magics[22], magicmoves_b_shifts[22]},
+    {bishop_masks[23], magicmoves_b_magics[23], magicmoves_b_shifts[23]},
+    {bishop_masks[24], magicmoves_b_magics[24], magicmoves_b_shifts[24]},
+    {bishop_masks[25], magicmoves_b_magics[25], magicmoves_b_shifts[25]},
+    {bishop_masks[26], magicmoves_b_magics[26], magicmoves_b_shifts[26]},
+    {bishop_masks[27], magicmoves_b_magics[27], magicmoves_b_shifts[27]},
+    {bishop_masks[28], magicmoves_b_magics[28], magicmoves_b_shifts[28]},
+    {bishop_masks[29], magicmoves_b_magics[29], magicmoves_b_shifts[29]},
+    {bishop_masks[30], magicmoves_b_magics[30], magicmoves_b_shifts[30]},
+    {bishop_masks[31], magicmoves_b_magics[31], magicmoves_b_shifts[31]},
+    {bishop_masks[32], magicmoves_b_magics[32], magicmoves_b_shifts[32]},
+    {bishop_masks[33], magicmoves_b_magics[33], magicmoves_b_shifts[33]},
+    {bishop_masks[34], magicmoves_b_magics[34], magicmoves_b_shifts[34]},
+    {bishop_masks[35], magicmoves_b_magics[35], magicmoves_b_shifts[35]},
+    {bishop_masks[36], magicmoves_b_magics[36], magicmoves_b_shifts[36]},
+    {bishop_masks[37], magicmoves_b_magics[37], magicmoves_b_shifts[37]},
+    {bishop_masks[38], magicmoves_b_magics[38], magicmoves_b_shifts[38]},
+    {bishop_masks[39], magicmoves_b_magics[39], magicmoves_b_shifts[39]},
+    {bishop_masks[40], magicmoves_b_magics[40], magicmoves_b_shifts[40]},
+    {bishop_masks[41], magicmoves_b_magics[41], magicmoves_b_shifts[41]},
+    {bishop_masks[42], magicmoves_b_magics[42], magicmoves_b_shifts[42]},
+    {bishop_masks[43], magicmoves_b_magics[43], magicmoves_b_shifts[43]},
+    {bishop_masks[44], magicmoves_b_magics[44], magicmoves_b_shifts[44]},
+    {bishop_masks[45], magicmoves_b_magics[45], magicmoves_b_shifts[45]},
+    {bishop_masks[46], magicmoves_b_magics[46], magicmoves_b_shifts[46]},
+    {bishop_masks[47], magicmoves_b_magics[47], magicmoves_b_shifts[47]},
+    {bishop_masks[48], magicmoves_b_magics[48], magicmoves_b_shifts[48]},
+    {bishop_masks[49], magicmoves_b_magics[49], magicmoves_b_shifts[49]},
+    {bishop_masks[50], magicmoves_b_magics[50], magicmoves_b_shifts[50]},
+    {bishop_masks[51], magicmoves_b_magics[51], magicmoves_b_shifts[51]},
+    {bishop_masks[52], magicmoves_b_magics[52], magicmoves_b_shifts[52]},
+    {bishop_masks[53], magicmoves_b_magics[53], magicmoves_b_shifts[53]},
+    {bishop_masks[54], magicmoves_b_magics[54], magicmoves_b_shifts[54]},
+    {bishop_masks[55], magicmoves_b_magics[55], magicmoves_b_shifts[55]},
+    {bishop_masks[56], magicmoves_b_magics[56], magicmoves_b_shifts[56]},
+    {bishop_masks[57], magicmoves_b_magics[57], magicmoves_b_shifts[57]},
+    {bishop_masks[58], magicmoves_b_magics[58], magicmoves_b_shifts[58]},
+    {bishop_masks[59], magicmoves_b_magics[59], magicmoves_b_shifts[59]},
+    {bishop_masks[60], magicmoves_b_magics[60], magicmoves_b_shifts[60]},
+    {bishop_masks[61], magicmoves_b_magics[61], magicmoves_b_shifts[61]},
+    {bishop_masks[62], magicmoves_b_magics[62], magicmoves_b_shifts[62]},
+    {bishop_masks[63], magicmoves_b_magics[63], magicmoves_b_shifts[63]},
 };
-
 
 // Helper function to generate slider attacks "on the fly". This is used
 // only once during initialization to populate the magic lookup tables.
@@ -225,6 +322,9 @@ void init_bishop_magics(Square s) {
     uint64_t edges = util::Rank1 | util::Rank8 | util::FileA | util::FileH;
     BishopMagics[s].mask &= ~edges;
     
+    // std::cout << "Bishop Masks for Sq: " << (int)s << '\n';
+    // chess::print_bitboard(BishopMagics[s].mask);
+
     uint64_t b = util::Empty;
     int num_blockers = util::count_bits(BishopMagics[s].mask);
     for (int i = 0; i < (1 << num_blockers); ++i) {
@@ -286,8 +386,9 @@ void init_leaper_attacks() {
 // MAIN INITIALIZATION FUNCTION
 //-----------------------------------------------------------------------------
 void init() {
+
     init_leaper_attacks();
     init_magics();
 }
-
-} // namespace chess
+};
+ // namespace chess

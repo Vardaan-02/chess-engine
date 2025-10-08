@@ -275,7 +275,7 @@ void Board::make_move(const chess::Move &mv) {
         move_piece_bb((chess::Piece)board_array[rook_from], rook_from, rook_to);
     }
     // Handle pawn double push to set en passant square
-    else if (chess::type_of(moving_piece) == chess::PAWN && chess::square_distance(from, to) == 2) {
+    else if (flags == chess::FLAG_DOUBLE_PUSH) {
         move_piece_bb(moving_piece, from, to);
         en_passant_sq = white_to_move ? (chess::Square)(from + 8) : (chess::Square)(from - 8);
     }
@@ -359,7 +359,7 @@ void Board::unmake_move(const chess::Move &mv) {
             board_array[to] = captured_piece;
         }
     }
-    else if (flags == chess::FLAG_QUIET || (chess::type_of(moving_piece) == chess::PAWN && chess::square_distance(from, to) == 2)) {
+    else if (flags == chess::FLAG_QUIET || flags == chess::FLAG_DOUBLE_PUSH) {
         restore_piece_bb(moving_piece, from, to);
     }
     else if (flags == chess::FLAG_CAPTURE) {

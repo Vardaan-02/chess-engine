@@ -72,7 +72,7 @@ uint64_t perft(Board& board, int depth) {
             : board.white_king_sq; // White just moved, check their king
         
         if (!board.square_attacked(king_sq, board.white_to_move)) {
-            // board.print_board();
+            // if(board.en_passant_sq != chess::SQUARE_NONE) board.print_board();
             nodes += perft(board, depth - 1);
         }
 
@@ -92,7 +92,7 @@ int main() {
     std::string start_pos = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     Board newBoard; newBoard.set_fen(start_pos);
     newBoard.print_board();
-    run_perft_test(start_pos, 4);
+    run_perft_test(start_pos, 5);
 
     // Board board;
     // board.set_fen(const_cast<std::string&>(start_pos));

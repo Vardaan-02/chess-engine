@@ -22,9 +22,10 @@ Material (W/B): 0 / 0
 ------------------------------------------
 Position: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
 ------------------------------------------
-perft(1) = 20 | Time: 0.000010s | NPS: 1984126
-perft(2) = 400 | Time: 0.000051s | NPS: 7768800
-perft(3) = 8902 | Time: 0.001080s | NPS: 8244890
-perft(4) = 197281 | Time: 0.024033s | NPS: 8208698
-perft(5) = 4865609 | Time: 0.568765s | NPS: 8554697
+perft(1) = 20 | Time: 0.000014s | NPS: 1434514
+perft(2) = 400 | Time: 0.000086s | NPS: 4668970
+perft(3) = 8902 | Time: 0.002030s | NPS: 4384189
+perft(4) = 197281 | Time: 0.038963s | NPS: 5063291
+perft(5) = 4865609 | Time: 0.707116s | NPS: 6880923
+perft(6) = 119060324 | Time: 17.621013s | NPS: 6756724
 
