@@ -138,8 +138,10 @@ void generate_pawn_ep_captures(const Board& B, std::vector<chess::Move>& moveLis
         const chess::Square from = util::pop_lsb(attacking_pawns);
         const chess::Square to = B.en_passant_sq;
 
+        const uint64_t bitboard_of_capture_piece = B.white_to_move ? util::create_bitboard_from_square(to) >> 8 : util::create_bitboard_from_square(to) << 8;
+
         if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
-        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+        if(B.checker_bitboard && (!(bitboard_of_capture_piece & B.checkRay))) continue;
 
         const chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;
         const chess::Color oppColor = (color == chess::WHITE) ? chess::BLACK : chess::WHITE;
