@@ -6,7 +6,10 @@ void MoveGen::generate_orthogonal_sliders_moves(const Board& B, std::vector<ches
     while (orthogonal_sliders){
         const chess::Square from_sq = util::pop_lsb(orthogonal_sliders);
         
-        const uint64_t attacks = get_orthogonal_slider_attacks(from_sq, B.occupied);
+        uint64_t attacks = get_orthogonal_slider_attacks(from_sq, B.occupied);
+
+        if (B.pin_bitboard & util::create_bitboard_from_square(from_sq)) attacks &= B.pinRays[from_sq];
+        if (B.checker_bitboard)  attacks &= B.checkRay;
         
         uint64_t quiet_moves = attacks & (~B.occupied);
 

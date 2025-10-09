@@ -1,6 +1,29 @@
 #include "movegen.h"
 
-void generate_king_moves_no_castle(const Board& B, std::vector<chess::Move>& moveList){
+bool king_square_attacked(chess::Square sq, bool by_white, uint64_t occupied, Board& B) {
+    
+    chess::Color attackerColor = (by_white) ? chess::WHITE : chess::BLACK;
+    // 1. Pawns
+    if (chess::PawnAttacks[by_white][sq] & B.bitboard[chess::make_piece(attackerColor, chess::PAWN)]) return true;
+
+    // 2. Knight
+    if (chess::KnightAttacks[sq] & B.bitboard[chess::make_piece(attackerColor, chess::KNIGHT)]) return true;
+
+    // 3. King
+    if (chess::KingAttacks[sq] & B.bitboard[chess::make_piece(attackerColor, chess::KING)]) return true;
+
+    // 4. Orthogonal Sliders
+    if (chess::get_orthogonal_slider_attacks(sq, occupied) & B.bitboard[chess::make_piece(attackerColor, chess::ROOK)]) return true;
+    if (chess::get_orthogonal_slider_attacks(sq, occupied) & B.bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
+
+    // 5. Diagnol Sliders
+    if (chess::get_diagonal_slider_attacks(sq, occupied) & B.bitboard[chess::make_piece(attackerColor, chess::BISHOP)]) return true;
+    if (chess::get_diagonal_slider_attacks(sq, occupied) & B.bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
+
+    return false;
+}
+
+void generate_king_moves_no_castle(Board& B, std::vector<chess::Move>& moveList){
     const chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;
     uint64_t kingBitboard = B.bitboard[chess::make_piece(color, chess::KING)];
     while (kingBitboard){
@@ -11,7 +34,8 @@ void generate_king_moves_no_castle(const Board& B, std::vector<chess::Move>& mov
 
         while (quietMoves){
             const chess::Square destinationKingSquare = util::pop_lsb(quietMoves);
-            if (B.square_attacked(destinationKingSquare, color)) continue;
+            uint64_t occupied = (B.occupied ^ util::create_bitboard_from_square(currKingSquare));
+            if (king_square_attacked(destinationKingSquare, color, occupied, B)) continue;
             chess::Move m(currKingSquare, destinationKingSquare, chess::FLAG_QUIET, chess::NO_PIECE);
             moveList.push_back(m);
         }
@@ -20,7 +44,8 @@ void generate_king_moves_no_castle(const Board& B, std::vector<chess::Move>& mov
 
         while (captures){
             const chess::Square destinationKingSquare = util::pop_lsb(captures);
-            if (B.square_attacked(destinationKingSquare, color)) continue;
+            uint64_t occupied = (B.occupied ^ util::create_bitboard_from_square(currKingSquare));
+            if (king_square_attacked(destinationKingSquare, color, occupied, B)) continue;
             chess::Move m(currKingSquare, destinationKingSquare, chess::FLAG_CAPTURE, chess::NO_PIECE);
             moveList.push_back(m);
         }
@@ -62,7 +87,7 @@ void generate_king_moves_castle(const Board& B, std::vector<chess::Move>& moveLi
     }
 }
 
-void MoveGen::generate_king_moves(const Board& B, std::vector<chess::Move>& moveList){
+void MoveGen::generate_king_moves(Board& B, std::vector<chess::Move>& moveList){
     generate_king_moves_no_castle(B,moveList);
     generate_king_moves_castle(B,moveList);
 }

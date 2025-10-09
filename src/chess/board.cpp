@@ -15,9 +15,16 @@ Board::Board() {
 void Board::clear() {
     std::memset(bitboard, 0, sizeof(bitboard));
     std::memset(board_array, 0, sizeof(board_array));
+    std::memset(pinRays, 0, sizeof(pinRays));
     white_to_move = true;
     castle_rights = chess::NO_CASTLING;
     en_passant_sq = chess::SQUARE_NONE;
+
+    pin_bitboard = 0;
+    checkRay = 0;
+    checker_bitboard = 0;
+    inDoubleCheck = false;
+
     halfmove_clock = 0;
     fullmove_number = 1;
     white_king_sq = black_king_sq = chess::SQUARE_NONE;
@@ -86,6 +93,7 @@ void Board::set_fen(std::string &fen_cstr) {
     fullmove_number = fullmove;
     update_king_squares_from_bitboards();
     update_occupancies();
+    calculate_pins();
 }
 
 // ----------------- FEN serialization -----------------
@@ -139,7 +147,7 @@ std::string Board::to_fen() const {
     return fen;
 }
 
-void Board::print_board() const {
+void Board::print_board(bool withRays) const {
     std::cout << "\n    +------------------------+\n";
 
     // Loop ranks from top (8) to bottom (1)
@@ -201,6 +209,20 @@ void Board::print_board() const {
     std::cout << "Zobrist key: 0x" << std::hex << zobrist_key << std::dec << "\n";
 
     std::cout << "Material (W/B): " << material_white << " / " << material_black << "\n\n";
+
+    if(withRays){
+        std::cout << "Pieces pinned" << "\n";
+        chess::print_bitboard(pin_bitboard);
+        std::cout << "Pieces giving checks" << "\n";
+        chess::print_bitboard(checker_bitboard);
+        // std::cout << "Pins" << "\n";
+        for (int i = 0 ; i < 64 ; i++){
+            if (pinRays[i]){
+                std::cout << "PinRays for " << i << "square" << "\n";
+                chess::print_bitboard(pinRays[i]);
+            }
+        }
+    }
 }
 
 //-----------------------------------------------------------------------------
@@ -212,6 +234,11 @@ void Board::make_move(const chess::Move &mv) {
     undo.prev_castle_rights = castle_rights;
     undo.prev_en_passant_sq = en_passant_sq;
     undo.captured_piece_and_halfmove = (halfmove_clock << 4) | chess::NO_PIECE;
+    undo.pin_bitboard = pin_bitboard;
+    for(int i = 0; i < 64; ++i) undo.pinRays[i] = pinRays[i];
+    undo.checkRay = checkRay;
+    undo.checker_bitboard = checker_bitboard;
+    undo.inDoubleCheck = inDoubleCheck;
 
     // 2. Extract move details
     const chess::Square from = (chess::Square)mv.from();
@@ -311,6 +338,8 @@ void Board::make_move(const chess::Move &mv) {
     // 7. Update combined bitboards
     update_occupancies();
 
+    calculate_pins();
+
     // 8. Push state to undo stack
     undo_stack.push_back(undo);
 }
@@ -333,6 +362,11 @@ void Board::unmake_move(const chess::Move &mv) {
     castle_rights = (chess::CastlingRights)undo.prev_castle_rights;
     en_passant_sq = (chess::Square)undo.prev_en_passant_sq;
     halfmove_clock = undo.captured_piece_and_halfmove >> 4;
+    pin_bitboard = undo.pin_bitboard;
+    for(int i = 0; i < 64; ++i) pinRays[i] = undo.pinRays[i];
+    checkRay = undo.checkRay;
+    checker_bitboard = undo.checker_bitboard;
+    inDoubleCheck = undo.inDoubleCheck;
 
     // Switch side back
     white_to_move = !white_to_move;
@@ -393,6 +427,7 @@ void Board::unmake_move(const chess::Move &mv) {
     // 5. Update combined bitboards
     update_occupancies();
 }
+
 
 bool Board::square_attacked(chess::Square sq, bool by_white) const{
     

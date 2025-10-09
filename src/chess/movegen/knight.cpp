@@ -6,8 +6,11 @@ void MoveGen::generate_knight_moves(const Board& B, std::vector<chess::Move>& mo
     while (knightBitboard){
         const chess::Square currKnightSquare = util::pop_lsb(knightBitboard);
         uint64_t attacks = chess::KnightAttacks[currKnightSquare];
-        uint64_t quietMoves = attacks & (~B.occupied);
 
+        if (B.pin_bitboard & util::create_bitboard_from_square(currKnightSquare)) attacks &= B.pinRays[currKnightSquare];
+        if (B.checker_bitboard)  attacks &= B.checkRay;
+
+        uint64_t quietMoves = attacks & (~B.occupied);
 
         while (quietMoves){
             const chess::Square destinationKnightSquare = util::pop_lsb(quietMoves);

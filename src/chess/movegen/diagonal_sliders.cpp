@@ -3,11 +3,14 @@
 void MoveGen::generate_diagonal_sliders_moves(const Board& B, std::vector<chess::Move>& moveList){
     chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;
     uint64_t diagonal_sliders = (B.bitboard[chess::make_piece(color, chess::BISHOP)] | B.bitboard[chess::make_piece(color, chess::QUEEN)]);
+
     while (diagonal_sliders){
         const chess::Square from_sq = util::pop_lsb(diagonal_sliders);
         
-        const uint64_t attacks = get_diagonal_slider_attacks(from_sq, B.occupied);
+        uint64_t attacks = get_diagonal_slider_attacks(from_sq, B.occupied);
 
+        if (B.pin_bitboard & util::create_bitboard_from_square(from_sq)) attacks &= B.pinRays[from_sq];
+        if (B.checker_bitboard)  attacks &= B.checkRay;
         uint64_t quiet_moves = attacks & (~B.occupied);
         while (quiet_moves) {
             const chess::Square to_sq = util::pop_lsb(quiet_moves);

@@ -174,6 +174,11 @@ struct Undo {
     int8_t promoted_to;           // 0 if none 
     int8_t prev_white_king_sq;    // for incremental king position restore
     int8_t prev_black_king_sq;
+    uint64_t pin_bitboard;  // Contains squares which have a pinned piece
+    uint64_t pinRays[64];   // Contains rays for squares which are pinned (including the king and the attacking piece)
+    uint64_t checkRay;
+    uint64_t checker_bitboard; 
+    bool inDoubleCheck;
     Undo() = default;
 };
 

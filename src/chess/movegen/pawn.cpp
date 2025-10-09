@@ -27,6 +27,10 @@ void generate_pawn_single_push(const Board& B, std::vector<chess::Move>& moveLis
     {
         const chess::Square to = util::pop_lsb(destinations);
         const chess::Square from = util::shift_square(to, pull_dir);
+
+        if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
+        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+
         moveList.push_back(chess::Move(from, to, chess::FLAG_QUIET, chess::NO_PIECE));
     }
 }
@@ -47,6 +51,10 @@ void generate_push_double_push(const Board& B, std::vector<chess::Move>& moveLis
     {
         const chess::Square to = util::pop_lsb(destinations);
         const chess::Square from = util::shift_square(util::shift_square(to, pull_dir), pull_dir);
+
+        if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
+        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+
         moveList.push_back(chess::Move(from, to, chess::FLAG_DOUBLE_PUSH, chess::NO_PIECE));
     }
 }
@@ -68,6 +76,10 @@ void generate_pawn_captures(const Board& B, std::vector<chess::Move>& moveList)
     {
         const chess::Square to = util::pop_lsb(captures1);
         const chess::Square from = util::shift_square(to, pull_dir1);
+
+        if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
+        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+
         moveList.push_back(chess::Move(from, to, chess::FLAG_CAPTURE, chess::NO_PIECE));
     }
 
@@ -79,6 +91,10 @@ void generate_pawn_captures(const Board& B, std::vector<chess::Move>& moveList)
     {
         const chess::Square to = util::pop_lsb(captures2);
         const chess::Square from = util::shift_square(to, pull_dir2);
+
+        if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
+        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+
         moveList.push_back(chess::Move(from, to, chess::FLAG_CAPTURE, chess::NO_PIECE));
     }
 }
@@ -98,6 +114,10 @@ void generate_pawn_promotion(const Board& B, std::vector<chess::Move>& moveList)
     {
         const chess::Square to = util::pop_lsb(destinations);
         const chess::Square from = util::shift_square(to, pull_dir);
+
+        if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
+        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+
         add_pawn_promotion_moves(B, from, to, chess::FLAG_PROMO, moveList);
     }
 }
@@ -116,6 +136,25 @@ void generate_pawn_ep_captures(const Board& B, std::vector<chess::Move>& moveLis
     while (attacking_pawns)
     {
         const chess::Square from = util::pop_lsb(attacking_pawns);
+        const chess::Square to = B.en_passant_sq;
+
+        if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
+        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+
+        const chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;
+        const chess::Color oppColor = (color == chess::WHITE) ? chess::BLACK : chess::WHITE;
+        const chess::Square captured_pawn_sq = B.white_to_move ? util::shift_square(to, chess::SOUTH) : util::shift_square(to, chess::NORTH);
+        const uint64_t occupancy_after_ep = (B.occupied ^ (1ULL << from) ^ (1ULL << captured_pawn_sq)) | (1ULL << to);
+        const chess::Square king_sq = (color == chess::WHITE) ? B.white_king_sq : B.black_king_sq;
+
+        if (get_orthogonal_slider_attacks(king_sq, occupancy_after_ep) & (B.bitboard[chess::make_piece(oppColor, chess::ROOK)] | B.bitboard[chess::make_piece(oppColor, chess::QUEEN)])) {
+            continue; // This EP move is illegal as it exposes the king to a rook/queen.
+        }
+
+        if (get_diagonal_slider_attacks(king_sq, occupancy_after_ep) & (B.bitboard[chess::make_piece(oppColor, chess::BISHOP)] | B.bitboard[chess::make_piece(oppColor, chess::QUEEN)])) {
+            continue; // This EP move is illegal as it exposes the king to a bishop/queen.
+        }
+
         moveList.push_back(chess::Move(from, B.en_passant_sq, chess::FLAG_EP, chess::NO_PIECE));
     }
 }
@@ -137,6 +176,10 @@ void generate_pawn_promotion_captures(const Board& B, std::vector<chess::Move>& 
     {
         const chess::Square to = util::pop_lsb(captures1);
         const chess::Square from = util::shift_square(to, pull_dir1);
+
+        if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
+        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+
         add_pawn_promotion_moves(B, from, to, chess::FLAG_CAPTURE_PROMO, moveList);
     }
 
@@ -148,6 +191,10 @@ void generate_pawn_promotion_captures(const Board& B, std::vector<chess::Move>& 
     {
         const chess::Square to = util::pop_lsb(captures2);
         const chess::Square from = util::shift_square(to, pull_dir2);
+
+        if((B.pin_bitboard & util::create_bitboard_from_square(from)) && (!(B.pinRays[from] & util::create_bitboard_from_square(to)))) continue;
+        if(B.checker_bitboard && (!(util::create_bitboard_from_square(to) & B.checkRay))) continue;
+
         add_pawn_promotion_moves(B, from, to, chess::FLAG_CAPTURE_PROMO, moveList);
     }
 }

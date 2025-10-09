@@ -3,8 +3,9 @@
 #include <array>
 #include <vector>
 #include <string>
-#include "types.h"
 #include <string>
+#include "types.h"
+#include "bitboard.h"
 
 constexpr uint64_t ONE = 1ULL;
 
@@ -18,6 +19,11 @@ public:
 
     // --- Square array for O(1) lookup
     int8_t board_array[64];
+    uint64_t pin_bitboard;  // Contains squares which have a pinned piece
+    uint64_t pinRays[64]{};   // Contains rays for squares which are pinned (including the king and the attacking piece)
+    uint64_t checkRay;
+    uint64_t checker_bitboard; // set bit for the pieces on 64 square which are attacking the king so if == 1 then single check, if > 1 double check
+    bool inDoubleCheck;
 
     // --- Side to move
     bool white_to_move;
@@ -95,7 +101,7 @@ public:
     std::string to_fen() const;
 
     // Debug
-    void print_board() const;
+    void print_board(bool withRays) const;
 
     // Make/unmake
     void make_move(const chess::Move &mv);
@@ -143,6 +149,11 @@ private:
         black_occupied = bitboard[chess::BP] | bitboard[chess::BN] | bitboard[chess::BB] | bitboard[chess::BR] | bitboard[chess::BQ] | bitboard[chess::BK];
         occupied       = white_occupied | black_occupied;
     }
+
+    void calculate_orthogonal_pins();
+    void calculate_diagonal_pins();
+
+    void calculate_pins();
     //Assumes 0-Based indexing of the board, a1 = 0 (from bottom left). 0-based indexing for rank and files too
     inline chess::Square get_square_from_rank_file(int8_t rank, int8_t file) { return (chess::Square)(8 * rank + file); }
 };

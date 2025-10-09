@@ -1,0 +1,37 @@
+
+    +------------------------+
+ 8 | . . . . . . . . |
+ 7 | . . p . . . . . |
+ 6 | . . . p . . . . |
+ 5 | K P . . . . . r |
+ 4 | . R . . . p . k |
+ 3 | . . . . . . . . |
+ 2 | . . . . P . P . |
+ 1 | . . . . . . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 0
+Fullmove number: 1
+Zobrist key: 0x0
+Material (W/B): 0 / 0
+
+------------------------------------------
+🔍 Testing: Complex Position
+   FEN: 8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1
+------------------------------------------
+  perft(1) = 14 | captures: 1 | eps: 0 | checks: 2| double_checks: 0 | Time: 0.000s | NPS: 690437 | Status: ✅ Passed
+  perft(2) = 191 | captures: 14 | eps: 0 | checks: 10| double_checks: 0 | Time: 0.000s | NPS: 1113449 | Status: ✅ Passed
+  perft(3) = 2812 | captures: 208 | eps: 2 | checks: 269| double_checks: 0 | Time: 0.002s | NPS: 1148822 | Status: ✅ Passed
+  perft(4) = 43238 | captures: 3239 | eps: 123 | checks: 1690| double_checks: 0 | Time: 0.022s | NPS: 2003038 | Status: ✅ Passed
+  perft(5) = 674543 | captures: 51094 | eps: 1086 | checks: 53216| double_checks: 3 | Time: 0.324s | NPS: 2079941 | Status: ❌ FAIL
+  Expected: 674624
+
+🔴 Test case FAILED.
+
+==========================================
+❌ Some perft tests failed. 🔴
+==========================================
