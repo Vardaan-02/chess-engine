@@ -1,0 +1,66 @@
+------------------------------------------
+🔍 Testing: Start Position
+   FEN: rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1
+------------------------------------------
+  perft(1) = 20 | Time: 0.000s | NPS: 1823652 | Status: ✅ Passed
+  perft(2) = 400 | Time: 0.000s | NPS: 4125327 | Status: ✅ Passed
+  perft(3) = 8902 | Time: 0.002s | NPS: 4130754 | Status: ✅ Passed
+  perft(4) = 197281 | Time: 0.033s | NPS: 6059124 | Status: ✅ Passed
+  perft(5) = 4865609 | Time: 0.795s | NPS: 6120841 | Status: ✅ Passed
+  perft(6) = 119060324 | Time: 19.164s | NPS: 6212661 | Status: ✅ Passed
+
+------------------------------------------
+🔍 Testing: Kiwipete
+   FEN: r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1
+------------------------------------------
+  perft(1) = 48 | Time: 0.000s | NPS: 4462210 | Status: ✅ Passed
+  perft(2) = 2039 | Time: 0.000s | NPS: 5644368 | Status: ✅ Passed
+  perft(3) = 97862 | Time: 0.017s | NPS: 5847957 | Status: ✅ Passed
+  perft(4) = 4085603 | Time: 0.713s | NPS: 5726528 | Status: ✅ Passed
+  perft(5) = 193690690 | Time: 32.186s | NPS: 6017786 | Status: ✅ Passed
+
+------------------------------------------
+🔍 Testing: Complex Position
+   FEN: 8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1
+------------------------------------------
+  perft(1) = 14 | Time: 0.000s | NPS: 2062159 | Status: ✅ Passed
+  perft(2) = 191 | Time: 0.000s | NPS: 2425027 | Status: ✅ Passed
+  perft(3) = 2812 | Time: 0.001s | NPS: 3639502 | Status: ✅ Passed
+  perft(4) = 43238 | Time: 0.011s | NPS: 4047807 | Status: ✅ Passed
+  perft(5) = 674624 | Time: 0.154s | NPS: 4383481 | Status: ✅ Passed
+  perft(6) = 11030083 | Time: 2.408s | NPS: 4580546 | Status: ✅ Passed
+  perft(7) = 178633661 | Time: 37.667s | NPS: 4742450 | Status: ✅ Passed
+
+------------------------------------------
+🔍 Testing: Position 4
+   FEN: r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1
+------------------------------------------
+  perft(1) = 6 | Time: 0.000s | NPS: 509208 | Status: ✅ Passed
+  perft(2) = 264 | Time: 0.000s | NPS: 3885209 | Status: ✅ Passed
+  perft(3) = 9467 | Time: 0.002s | NPS: 4181581 | Status: ✅ Passed
+  perft(4) = 422333 | Time: 0.091s | NPS: 4650569 | Status: ✅ Passed
+  perft(5) = 15833292 | Time: 3.737s | NPS: 4236639 | Status: ✅ Passed
+
+------------------------------------------
+🔍 Testing: Position 5
+   FEN: rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8
+------------------------------------------
+  perft(1) = 44 | Time: 0.000s | NPS: 4373322 | Status: ✅ Passed
+  perft(2) = 1486 | Time: 0.000s | NPS: 5404422 | Status: ✅ Passed
+  perft(3) = 62379 | Time: 0.012s | NPS: 5348307 | Status: ✅ Passed
+  perft(4) = 2103487 | Time: 0.400s | NPS: 5254271 | Status: ✅ Passed
+  perft(5) = 89941194 | Time: 16.585s | NPS: 5423023 | Status: ✅ Passed
+
+------------------------------------------
+🔍 Testing: Position 6
+   FEN: r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10
+------------------------------------------
+  perft(1) = 46 | Time: 0.000s | NPS: 3298909 | Status: ✅ Passed
+  perft(2) = 2079 | Time: 0.000s | NPS: 4384577 | Status: ✅ Passed
+  perft(3) = 89890 | Time: 0.019s | NPS: 4760552 | Status: ✅ Passed
+  perft(4) = 3894594 | Time: 0.815s | NPS: 4780449 | Status: ✅ Passed
+  perft(5) = 164075551 | Time: 34.028s | NPS: 4821794 | Status: ✅ Passed
+
+==========================================
+🎉 All perft tests passed successfully! 🟢
+==========================================

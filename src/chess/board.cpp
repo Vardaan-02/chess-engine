@@ -20,6 +20,10 @@ void Board::clear() {
     en_passant_sq = chess::SQUARE_NONE;
     halfmove_clock = 0;
     fullmove_number = 1;
+    pinned = 0ULL;
+    checks = 0ULL;
+    check_mask = 0ULL;
+    double_check = false;
     white_king_sq = black_king_sq = chess::SQUARE_NONE;
     zobrist_key = zobrist_pawn_key = 0;
     material_white = material_black = 0;
@@ -86,6 +90,7 @@ void Board::set_fen(std::string &fen_cstr) {
     fullmove_number = fullmove;
     update_king_squares_from_bitboards();
     update_occupancies();
+    compute_pins_and_checks();
 }
 
 // ----------------- FEN serialization -----------------
@@ -212,6 +217,10 @@ void Board::make_move(const chess::Move &mv) {
     undo.prev_castle_rights = castle_rights;
     undo.prev_en_passant_sq = en_passant_sq;
     undo.captured_piece_and_halfmove = (halfmove_clock << 4) | chess::NO_PIECE;
+    undo.check_mask = check_mask;
+    undo.checks  = checks;
+    undo.pinned = pinned;
+    undo.double_check = double_check;
 
     // 2. Extract move details
     const chess::Square from = (chess::Square)mv.from();
@@ -310,6 +319,7 @@ void Board::make_move(const chess::Move &mv) {
 
     // 7. Update combined bitboards
     update_occupancies();
+    compute_pins_and_checks();
 
     // 8. Push state to undo stack
     undo_stack.push_back(undo);
@@ -333,6 +343,10 @@ void Board::unmake_move(const chess::Move &mv) {
     castle_rights = (chess::CastlingRights)undo.prev_castle_rights;
     en_passant_sq = (chess::Square)undo.prev_en_passant_sq;
     halfmove_clock = undo.captured_piece_and_halfmove >> 4;
+    check_mask = undo.check_mask;
+    checks  = undo.checks;
+    pinned = undo.pinned;
+    double_check = undo.double_check;
 
     // Switch side back
     white_to_move = !white_to_move;
@@ -406,13 +420,14 @@ bool Board::square_attacked(chess::Square sq, bool by_white) const{
     // 3. King
     if (chess::KingAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KING)]) return true;
 
+    uint64_t orthogonal_pieces = bitboard[chess::make_piece(attackerColor, chess::ROOK)] | bitboard[chess::make_piece(attackerColor, chess::QUEEN)];
+    uint64_t diagonal_pieces = bitboard[chess::make_piece(attackerColor, chess::BISHOP)] | bitboard[chess::make_piece(attackerColor, chess::QUEEN)];
+
     // 4. Orthogonal Sliders
-    if (chess::get_orthogonal_slider_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::ROOK)]) return true;
-    if (chess::get_orthogonal_slider_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
+    if (chess::get_orthogonal_slider_attacks(sq, occupied) & orthogonal_pieces) return true;
 
     // 5. Diagnol Sliders
-    if (chess::get_diagonal_slider_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::BISHOP)]) return true;
-    if (chess::get_diagonal_slider_attacks(sq, occupied) & bitboard[chess::make_piece(attackerColor, chess::QUEEN)]) return true;
+    if (chess::get_diagonal_slider_attacks(sq, occupied) & diagonal_pieces) return true;
 
     return false;
 }

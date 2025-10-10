@@ -34,6 +34,21 @@ enum Square : int8_t {
     SQUARE_NONE = 65     // Represents an invalid or off-board square
 };
 
+inline Square& operator++(Square& s) {
+    if (s < SQUARE_NB - 1)  // stay in range
+        s = static_cast<Square>(static_cast<int>(s) + 1);
+    else
+        s = SQUARE_NONE; // overflow protection, wrap to invalid
+    return s;
+}
+
+inline Square operator++(Square& s, int) {
+    Square old = s;
+    ++s;
+    return old;
+}
+
+
 //-----------------------------------------------------------------------------
 // COLORS
 //-----------------------------------------------------------------------------
@@ -174,6 +189,10 @@ struct Undo {
     int8_t promoted_to;           // 0 if none 
     int8_t prev_white_king_sq;    // for incremental king position restore
     int8_t prev_black_king_sq;
+    uint64_t pinned;         // single pass using ray attacks
+    uint64_t checks;       // squares of checking pieces
+    bool double_check;
+    uint64_t check_mask; // rays + checker squares
     Undo() = default;
 };
 

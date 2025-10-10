@@ -3,8 +3,9 @@
 #include <array>
 #include <vector>
 #include <string>
-#include "types.h"
 #include <string>
+#include "types.h"
+#include "bitboard.h"
 
 constexpr uint64_t ONE = 1ULL;
 
@@ -15,6 +16,11 @@ public:
     // 1 -> WP, 2 -> WN, 3 -> WB, 4 -> WR, 5 -> WQ, 6 -> WK 
     // 9 -> BP, 10 -> BN, 11-> BB, 12 -> BR, 13 -> BQ, 14 -> BK
     uint64_t bitboard[16];  // 1..6 white, 9..14 black
+
+    uint64_t pinned;         // single pass using ray attacks
+    uint64_t checks;       // squares of checking pieces
+    bool double_check;
+    uint64_t check_mask; // rays + checker squares
 
     // --- Square array for O(1) lookup
     int8_t board_array[64];
@@ -143,6 +149,11 @@ private:
         black_occupied = bitboard[chess::BP] | bitboard[chess::BN] | bitboard[chess::BB] | bitboard[chess::BR] | bitboard[chess::BQ] | bitboard[chess::BK];
         occupied       = white_occupied | black_occupied;
     }
+
+    void calculate_orthogonal_pins();
+    void calculate_diagonal_pins();
+    void compute_pins_and_checks();
+
     //Assumes 0-Based indexing of the board, a1 = 0 (from bottom left). 0-based indexing for rank and files too
     inline chess::Square get_square_from_rank_file(int8_t rank, int8_t file) { return (chess::Square)(8 * rank + file); }
 };

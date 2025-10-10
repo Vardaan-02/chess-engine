@@ -28,6 +28,9 @@ uint64_t perft(Board& board, int depth) {
     // Iterate through all generated moves
     for (const auto& move : moveList) {
         // Make the move on the board
+        uint64_t curPin = board.pinned;
+        uint64_t check = board.checks;
+        chess::Square currKingSq = (board.white_to_move) ? board.white_king_sq : board.black_king_sq;
         board.make_move(move);
 
         // After making a move, the king of the side that just moved should
@@ -36,9 +39,13 @@ uint64_t perft(Board& board, int depth) {
             ? board.black_king_sq // Black just moved, check their king
             : board.white_king_sq; // White just moved, check their king
         
-        if (!board.square_attacked(king_sq, board.white_to_move)) {
+        if(curPin || check || move.from() == (int)(currKingSq) || move.flags() == chess::FLAG_EP)
+        {
+            if(!board.square_attacked(king_sq,board.white_to_move))
             nodes += perft(board, depth - 1);
         }
+        else nodes += perft(board, depth - 1);
+
 
         // Unmake the move to restore the board to its original state
         board.unmake_move(move);

@@ -93,4 +93,10 @@ inline void print_bitboard(uint64_t bb) {
               << " Popcount: " << util::count_bits(bb) << "\n" << std::endl;
 }
 
+extern uint64_t Between[chess::SQUARE_NB][chess::SQUARE_NB];
+extern uint64_t Rays[chess::SQUARE_NB][chess::SQUARE_NB];
+
+// generator (can be used to fill the tables at program init if not constexpr-hardened)
+void generate_between_and_ray_tables() noexcept;
+
 } // namespace chess

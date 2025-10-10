@@ -382,6 +382,66 @@ void init_leaper_attacks() {
 
 } // anonymous namespace
 
+uint64_t Between[chess::SQUARE_NB][chess::SQUARE_NB];
+uint64_t Rays[chess::SQUARE_NB][chess::SQUARE_NB];
+
+void generate_between_and_ray_tables() noexcept {
+    // Initialize all tables to 0ULL (empty bitboard)
+    for (int s1 = 0; s1 < 64; ++s1) {
+        for (int s2 = 0; s2 < 64; ++s2) {
+            Between[s1][s2] = 0ULL;
+            Rays[s1][s2] = 0ULL;
+        }
+    }
+
+    for (int s1 = 0; s1 < 64; ++s1) {
+        for (int s2 = 0; s2 < 64; ++s2) {
+            if (s1 == s2) continue; // No squares between a square and itself
+
+            // Get original coordinates without swapping
+            int s1_rank = s1 / 8;
+            int s1_file = s1 % 8;
+            int s2_rank = s2 / 8;
+            int s2_file = s2 % 8;
+
+            // Calculate the raw difference to check for alignment
+            int rank_diff = s2_rank - s1_rank;
+            int file_diff = s2_file - s1_file;
+
+            // Check if the squares are aligned on a rank, file, or diagonal
+            // This is a much clearer way to check than the original logic
+            if ((rank_diff != 0 && file_diff != 0) && (std::abs(rank_diff) != std::abs(file_diff))) {
+                continue; // Not a straight line, so no ray/between squares
+            }
+
+            // FIX: Calculate the unit direction vector (the "step")
+            // This will be -1, 0, or 1 for both rank and file
+            int dr = (rank_diff > 0) ? 1 : (rank_diff < 0) ? -1 : 0;
+            int df = (file_diff > 0) ? 1 : (file_diff < 0) ? -1 : 0;
+
+            uint64_t between_mask = 0ULL;
+
+            // FIX: Start "crawling" from s1 towards s2 one step at a time
+            int current_rank = s1_rank + dr;
+            int current_file = s1_file + df;
+
+            while (current_rank != s2_rank || current_file != s2_file) {
+                int current_square = current_rank * 8 + current_file;
+                between_mask |= (1ULL << current_square);
+                current_rank += dr;
+                current_file += df;
+            }
+
+            // The squares BETWEEN s1 and s2
+            Between[s1][s2] = between_mask;
+            
+            // The RAY includes the squares between AND the destination square s2
+            Rays[s1][s2] = between_mask | (1ULL << s2);
+        }
+    }
+}
+
+
 //-----------------------------------------------------------------------------
 // MAIN INITIALIZATION FUNCTION
 //-----------------------------------------------------------------------------
@@ -389,6 +449,7 @@ void init() {
 
     init_leaper_attacks();
     init_magics();
+    generate_between_and_ray_tables();
 }
 };
  // namespace chess
