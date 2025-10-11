@@ -6,20 +6,14 @@ void MoveGen::generate_diagonal_sliders_moves(const Board& B, std::vector<chess:
     while (diagonal_sliders){
         const chess::Square from_sq = util::pop_lsb(diagonal_sliders);
         
-        const uint64_t attacks = get_diagonal_slider_attacks(from_sq, B.occupied);
+        uint64_t attacks = get_diagonal_slider_attacks(from_sq, B.occupied) & (color ? ~B.black_occupied : ~B.white_occupied);
 
-        uint64_t quiet_moves = attacks & (~B.occupied);
-        while (quiet_moves) {
-            const chess::Square to_sq = util::pop_lsb(quiet_moves);
-            moveList.push_back(chess::Move(from_sq, to_sq, chess::FLAG_QUIET, chess::NO_PIECE));
-        }
+        while (attacks) {
+            const chess::Square to_sq = util::pop_lsb(attacks);
 
-        uint64_t opponentPieces = color ? B.white_occupied : B.black_occupied;
-
-        uint64_t capture_moves = attacks & opponentPieces;
-        while (capture_moves) {
-            const chess::Square to_sq = util::pop_lsb(capture_moves);
-            moveList.push_back(chess::Move(from_sq, to_sq, chess::FLAG_CAPTURE, chess::NO_PIECE));
+            chess::MoveFlag flag = (util::create_bitboard_from_square(to_sq) & (color ? B.white_occupied : B.black_occupied)) ? chess::FLAG_CAPTURE : chess::FLAG_QUIET;
+            
+            moveList.push_back(chess::Move(from_sq, to_sq, flag, chess::NO_PIECE));
         }
     }
 }
