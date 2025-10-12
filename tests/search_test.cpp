@@ -1,4 +1,4 @@
-// Compile using: g++ -std=c++17 -I../include/chess -I../include -I../include/utils -o search_test.out search_test.cpp ../src/chess/*.cpp ../src/chess/movegen/*.cpp ../src/utils/threadpool.cpp ../src/engine/search.cpp -O3 -march=native -flto -funroll-loops
+// Compile using: g++ -std=c++17 -I../include/chess -I../include -I../include/utils -o search_test.out search_test.cpp ../src/chess/*.cpp ../src/chess/movegen/*.cpp ../src/utils/threadpool.cpp ../src/engine/search.cpp ../src/engine/evaluate.cpp ../src/engine/search/*.cpp -O3 -march=native -flto -funroll-loops
 
 #include <iostream>
 #include <vector>
@@ -13,18 +13,6 @@ struct TestCase {
     std::string best_move_str;
 };
 
-std::string square_to_string(int s) {
-    std::string str = "";
-    str += (char)('a' + (s % 8));
-    str += (char)('1' + (s / 8));
-    return str;
-}
-
-std::string move_to_string(const chess::Move& m) {
-    if (m.from() == m.to()) return "NULL";
-    return square_to_string(m.from()) + square_to_string(m.to());
-}
-
 void run_test(Search& search, const TestCase& tc) {
     Board b;
     std::string fen_str = tc.fen;
@@ -34,7 +22,7 @@ void run_test(Search& search, const TestCase& tc) {
     chess::Move bm = search.start_search(b, tc.depth);
     auto end = std::chrono::high_resolution_clock::now();
 
-    std::string found_move_str = move_to_string(bm);
+    std::string found_move_str = util::move_to_string(bm);
     bool passed = (found_move_str == tc.best_move_str);
 
     std::chrono::duration<double> diff = end - start;
@@ -54,10 +42,10 @@ int main() {
 
     std::vector<TestCase> tests = {
         // Mate in 1. Requires depth 1. (Legal's Mate pattern)
-        {"r1bqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4", 1, "f3f7"},
+        {"r1bqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4", 2, "f3f7"},
 
         // Mate in 1. Requires depth 1.
-        {"6k1/3br3/1p1p2p1/p1pP4/PPPb2r1/3B4/8/3R1K2 b - - 0 49", 1, "g4g1"},
+        {"6k1/3br3/1p1p2p1/p1pP4/PPPb2r1/3B4/8/3R1K2 b - - 0 49", 2, "g4g1"},
 
         // Mate in 2, depth 4
         {"6k1/3b4/1p1p2p1/p1pPbr2/P1P3K1/1P6/4r3/3R4 b - - 1 51", 4, "e2f2"}, //e2f2 then f5h5
