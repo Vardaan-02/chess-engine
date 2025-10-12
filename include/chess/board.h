@@ -111,6 +111,7 @@ public:
     bool isempty(chess::Square sq) const { return board_array[sq] == chess::NO_PIECE; }
     int piece_on_sq(chess::Square sq) const { return board_array[sq]; }
     bool square_attacked(chess::Square sq, bool by_white) const; // uses attack tables
+    bool is_position_legal();
 
 private:
     //assumes to_sq is empty
@@ -130,28 +131,12 @@ private:
         if (piece == chess::WK || piece == chess::BK) update_king_squares_from_bitboards();
     }
 
-    inline void update_material(chess::Piece piece, bool add) {
-        int val = 0;
-        switch (chess::type_of(piece)) {
-            case 1: val = 100; break; // Pawn
-            case 2: val = 320; break; // Knight
-            case 3: val = 330; break; // Bishop
-            case 4: val = 500; break; // Rook
-            case 5: val = 900; break; // Queen
-            case 6: val = 0; break;   // King
-        }
-        if (chess::color_of(piece) == chess::WHITE) material_white += add ? val : -val;
-        else           material_black += add ? val : -val;
-    }
-
     inline void update_occupancies() {
         white_occupied = bitboard[chess::WP] | bitboard[chess::WN] | bitboard[chess::WB] | bitboard[chess::WR] | bitboard[chess::WQ] | bitboard[chess::WK];
         black_occupied = bitboard[chess::BP] | bitboard[chess::BN] | bitboard[chess::BB] | bitboard[chess::BR] | bitboard[chess::BQ] | bitboard[chess::BK];
         occupied       = white_occupied | black_occupied;
     }
 
-    void calculate_orthogonal_pins();
-    void calculate_diagonal_pins();
     void compute_pins_and_checks();
 
     //Assumes 0-Based indexing of the board, a1 = 0 (from bottom left). 0-based indexing for rank and files too

@@ -6,6 +6,9 @@
 #include "chess/types.h"
 #include "chess/movegen.h"
 
+#define DRAW_EVAL 0
+#define CHECKMATE_EVAL -30000
+#define INFINITY_EVAL -31000
 
 class Search {
 public:
@@ -52,5 +55,6 @@ private:
      * @param board The board state to evaluate.
      * @return The score in centipawns. Positive is good for the current player.
      */
-    int evaluate(const Board& board);
+
+    int evaluate(const Board& b);
 };

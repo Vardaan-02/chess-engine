@@ -431,3 +431,12 @@ bool Board::square_attacked(chess::Square sq, bool by_white) const{
 
     return false;
 }
+
+bool Board::is_position_legal()
+{
+      chess::Square king_sq = white_to_move
+            ? black_king_sq 
+            : white_king_sq;
+
+    return !(square_attacked(king_sq, white_to_move));
+}
