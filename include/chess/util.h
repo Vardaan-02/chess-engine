@@ -181,4 +181,16 @@ namespace util{
     {
         return s/8;
     }
+
+    inline std::string square_to_string(int s) {
+        std::string str = "";
+        str += (char)('a' + (s % 8));
+        str += (char)('1' + (s / 8));
+        return str;
+    }
+
+    inline std::string move_to_string(const chess::Move& m) {
+        if (m.from() == m.to()) return "NULL";
+        return square_to_string(m.from()) + square_to_string(m.to());
+    }
 };

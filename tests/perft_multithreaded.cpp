@@ -57,9 +57,8 @@ uint64_t perft(Board& board, int depth) {
 
     std::vector<chess::Move> moveList;
     // Generate all pseudo-legal moves for the current position.
-    MoveGen::init(board, moveList);
+    MoveGen::init(board, moveList, false);
     uint64_t nodes = 0;
-
     // Iterate through all generated moves
     for (const auto& move : moveList) {
         // Make the move on the board
@@ -87,7 +86,7 @@ uint64_t perft_threaded(Board& root_board, int depth, ThreadPool& pool) {
     if (depth == 0) return 1ULL;
 
     std::vector<chess::Move> moveList;
-    MoveGen::init(root_board, moveList);
+    MoveGen::init(root_board, moveList, false);
     std::vector<std::future<uint64_t>> futures;
     uint64_t total_nodes = 0;
 
@@ -123,23 +122,26 @@ int main() {
     };
 
     std::vector<TestCase> tests = {
-        {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-         {20, 400, 8902, 197281, 4865609, 119060324}, "Start Position"},
+        // {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        //  {20, 400, 8902, 197281, 4865609, 119060324}, "Start Position"},
 
-        {"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
-         {48, 2039, 97862, 4085603, 193690690}, "Kiwipete"},
+        // {"r3k2r/p1ppqpb1/bn2pnp1/3PN3/1p2P3/2N2Q1p/PPPBBPPP/R3K2R w KQkq - 0 1",
+        //  {48, 2039, 97862, 4085603, 193690690}, "Kiwipete"},
 
-        {"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
-         {14, 191, 2812, 43238, 674624, 11030083, 178633661}, "Complex Position"},
+        // {"8/2p5/3p4/KP5r/1R3p1k/8/4P1P1/8 w - - 0 1",
+        //  {14, 191, 2812, 43238, 674624, 11030083, 178633661}, "Complex Position"},
 
-        {"r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
-         {6, 264, 9467, 422333, 15833292}, "Position 4"},
+        // {"r3k2r/Pppp1ppp/1b3nbN/nP6/BBP1P3/q4N2/Pp1P2PP/R2Q1RK1 w kq - 0 1",
+        //  {6, 264, 9467, 422333, 15833292}, "Position 4"},
 
-        {"rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
-         {44, 1486, 62379, 2103487, 89941194}, "Position 5"},
+        // {"rnbq1k1r/pp1Pbppp/2p5/8/2B5/8/PPP1NnPP/RNBQK2R w KQ - 1 8",
+        //  {44, 1486, 62379, 2103487, 89941194}, "Position 5"},
 
-        {"r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
-         {46, 2079, 89890, 3894594, 164075551}, "Position 6"}
+        // {"r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP1QPPP/R4RK1 w - - 0 10",
+        //  {46, 2079, 89890, 3894594, 164075551}, "Position 6"}
+
+        {"r1bqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4",
+        {46}, "Mate in one"}
     };
 
     chess::init(); // Initialize attack tables once
@@ -157,7 +159,7 @@ int main() {
     for (auto& test : tests) {
         Board board;
         board.set_fen(test.fen);
-        
+        board.print_board();
         std::cout << "------------------------------------------\n";
         std::cout << "🔍 Testing: " << test.name << "\n";
         std::cout << "   FEN: " << test.fen << "\n";

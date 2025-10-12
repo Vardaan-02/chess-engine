@@ -21,7 +21,7 @@ uint64_t perft(Board& board, int depth) {
 
     std::vector<chess::Move> moveList;
     // Generate all pseudo-legal moves for the current position.
-    MoveGen::init(board, moveList);
+    MoveGen::init(board, moveList, false);
 
     uint64_t nodes = 0;
 

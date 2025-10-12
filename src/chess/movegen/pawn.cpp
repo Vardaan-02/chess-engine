@@ -152,12 +152,16 @@ void generate_pawn_promotion_captures(const Board& B, std::vector<chess::Move>& 
     }
 }
 
-void MoveGen::generate_pawn_moves(const Board& B, std::vector<chess::Move>& moveList)
+void MoveGen::generate_pawn_moves(const Board& B, std::vector<chess::Move>& moveList, bool capturesOnly)
 {
-    generate_pawn_single_push(B, moveList);
-    generate_push_double_push(B, moveList);
     generate_pawn_captures(B, moveList);
-    generate_pawn_promotion(B, moveList);
     generate_pawn_ep_captures(B, moveList);
     generate_pawn_promotion_captures(B, moveList);
+
+    if(!capturesOnly)
+    {
+        generate_pawn_single_push(B, moveList);
+        generate_push_double_push(B, moveList);
+        generate_pawn_promotion(B, moveList);
+    }
 }

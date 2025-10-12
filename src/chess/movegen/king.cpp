@@ -1,6 +1,6 @@
 #include "movegen.h"
 
-void generate_king_moves_no_castle(const Board& B, std::vector<chess::Move>& moveList){
+void generate_king_moves_no_castle(const Board& B, std::vector<chess::Move>& moveList, bool capturesOnly){
     const chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;
     uint64_t kingBitboard = B.bitboard[chess::make_piece(color, chess::KING)];
     while (kingBitboard){
@@ -8,12 +8,14 @@ void generate_king_moves_no_castle(const Board& B, std::vector<chess::Move>& mov
         uint64_t attacks = chess::KingAttacks[currKingSquare];
         uint64_t quietMoves = attacks & (~B.occupied);
 
-
-        while (quietMoves){
-            const chess::Square destinationKingSquare = util::pop_lsb(quietMoves);
-            if (B.square_attacked(destinationKingSquare, color)) continue;
-            chess::Move m(currKingSquare, destinationKingSquare, chess::FLAG_QUIET, chess::NO_PIECE);
-            moveList.push_back(m);
+        if(!capturesOnly)
+        {
+            while (quietMoves){
+                const chess::Square destinationKingSquare = util::pop_lsb(quietMoves);
+                if (B.square_attacked(destinationKingSquare, color)) continue;
+                chess::Move m(currKingSquare, destinationKingSquare, chess::FLAG_QUIET, chess::NO_PIECE);
+                moveList.push_back(m);
+            }
         }
 
         uint64_t captures = (attacks & (color ? B.white_occupied : B.black_occupied));
@@ -62,7 +64,7 @@ void generate_king_moves_castle(const Board& B, std::vector<chess::Move>& moveLi
     }
 }
 
-void MoveGen::generate_king_moves(const Board& B, std::vector<chess::Move>& moveList){
-    generate_king_moves_no_castle(B,moveList);
-    generate_king_moves_castle(B,moveList);
+void MoveGen::generate_king_moves(const Board& B, std::vector<chess::Move>& moveList, bool capturesOnly){
+    generate_king_moves_no_castle(B,moveList,capturesOnly);
+    if(!capturesOnly) generate_king_moves_castle(B,moveList);
 }

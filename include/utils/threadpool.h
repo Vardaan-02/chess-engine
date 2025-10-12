@@ -29,6 +29,7 @@ class ThreadPool{
             }
 
             using return_type = typename std::invoke_result<F,Args...>::type;
+            //Creating a shared pointer to a packaged task which takes no argument (since we are binding the arguments via std::bind)
             auto task = std::make_shared<std::packaged_task<return_type()>>(std::bind(std::forward<F>(f),std::forward<Args>(args)...));
             
             std::future<return_type> future = task->get_future();
