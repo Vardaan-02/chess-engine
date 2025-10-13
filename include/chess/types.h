@@ -228,12 +228,6 @@ inline constexpr int square_distance(Square s1, Square s2) {
     return std::max(std::abs(f1 - f2), std::abs(r1 - r2));
 }
 
-// Common evaluation constants
-const Score VALUE_PAWN   = { 100, 120 };
-const Score VALUE_KNIGHT = { 320, 320 };
-const Score VALUE_BISHOP = { 330, 330 };
-const Score VALUE_ROOK   = { 500, 500 };
-const Score VALUE_QUEEN  = { 975, 975 };
 
 // A score indicating a forced mate. We leave a buffer to store the number
 // of plies until mate (e.g., MATE - 5 for mate in 5).

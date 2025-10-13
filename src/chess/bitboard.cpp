@@ -30,6 +30,10 @@ Magic BishopMagics[SQUARE_NB];
 uint64_t RookAttacks[SQUARE_NB][4096];
 uint64_t BishopAttacks[SQUARE_NB][512];
 
+
+uint64_t files[] = {util::FileA, util::FileB, util::FileC, util::FileD, util::FileE, util::FileF, util::FileG, util::FileH};
+uint64_t ranks[] = {util::Rank1, util::Rank2, util::Rank3, util::Rank4, util::Rank5, util::Rank6, util::Rank7, util::Rank8};
+
 //-----------------------------------------------------------------------------
 // ANONYMOUS NAMESPACE FOR HELPER FUNCTIONS
 //

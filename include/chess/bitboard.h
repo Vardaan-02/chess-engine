@@ -40,6 +40,10 @@ extern uint64_t KnightAttacks[SQUARE_NB];
 // King attacks [square]
 extern uint64_t KingAttacks[SQUARE_NB];
 
+
+extern uint64_t files[8];
+extern uint64_t ranks[8];
+
 //-----------------------------------------------------------------------------
 // MAGIC BITBOARDS FOR SLIDER PIECES (ROOK, BISHOP)
 //-----------------------------------------------------------------------------

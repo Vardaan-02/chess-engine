@@ -32,6 +32,7 @@ public:
     uint64_t nodes_searched;
     chess::Move killer_moves[MAX_PLY][2];
     int history_scores[15][64]{}; // [piece][dest_sq]
+    static int evaluate(const Board& b);
 
 private:
     /**

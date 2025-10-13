@@ -13,6 +13,7 @@
 #include "types.h"
 #include <iostream>
 
+
 // Include intrinsics headers for performance
 #if defined(__GNUC__) || defined(__clang__)
 #include <x86intrin.h>
@@ -144,6 +145,11 @@ namespace util{
         return chess::Square(__builtin_ctzll(bb));
     }
 
+    // Get the index of the most significant bit (MSB)
+    inline chess::Square msb(uint64_t bb) {
+        return chess::Square(63 - __builtin_clzll(bb));
+    }
+
     // Get and remove the LSB from a uint64_t
     inline chess::Square pop_lsb(uint64_t& bb) {
         chess::Square s = lsb(bb);
@@ -194,7 +200,7 @@ namespace util{
         return square_to_string(m.from()) + square_to_string(m.to());
     }
 
-    constexpr int flip(int sq) {
-    return sq ^ 56;
+    constexpr chess::Square flip(chess::Square sq) {
+    return chess::Square(sq ^ 56);
 }
 };
