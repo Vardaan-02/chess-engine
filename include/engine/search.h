@@ -7,8 +7,11 @@
 #include "chess/movegen.h"
 
 #define DRAW_EVAL 0
-#define CHECKMATE_EVAL -30000
-#define INFINITY_EVAL -31000
+#define CHECKMATE_EVAL -(int)1e7
+#define NEG_INFINITY_EVAL (-(int)1e9)
+#define MAX_PLY 64
+
+class MoveOrderer;
 
 class Search {
 public:
@@ -27,6 +30,8 @@ public:
 
     // Publicly accessible search statistics
     uint64_t nodes_searched;
+    chess::Move killer_moves[MAX_PLY][2];
+    int history_scores[15][64]{}; // [piece][dest_sq]
 
 private:
     /**
@@ -37,7 +42,7 @@ private:
      * @param beta The upper bound for the score (best score for minimizing player).
      * @return The evaluation of the position from the side-to-move's perspective.
      */
-    int negamax(Board& board, int depth, int alpha, int beta);
+    int negamax(Board& board, int depth, int ply, int alpha, int beta);
 
     /**
      * @brief Quiescence search to stabilize the evaluation at horizon nodes.
@@ -47,7 +52,7 @@ private:
      * @param beta The upper bound for the score.
      * @return The stabilized evaluation of the position.
      */
-    int search_captures_only(Board& board, int alpha, int beta);
+    int search_captures_only(Board& board, int ply, int alpha, int beta);
 
     /**
      * @brief Evaluates the board from the perspective of the side to move.
@@ -57,4 +62,16 @@ private:
      */
 
     int evaluate(const Board& b);
+
+    inline void update_killers(int ply, const chess::Move& move) {
+        if (killer_moves[ply][0].m != move.m) {
+            killer_moves[ply][1] = killer_moves[ply][0];
+            killer_moves[ply][0] = move;
+        }
+    }
+
+    inline void update_history(const Board& B, const chess::Move& move, int depth) {
+        history_scores[B.board_array[move.from()]][move.to()] += depth*depth;  //depth * depth since we want cutoffs near the root
+    }
+
 };

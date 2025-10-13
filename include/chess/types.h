@@ -176,6 +176,7 @@ struct Move {   //          LSB                          MSB
     int to() const { return (m >> 6) & 0x3F; }
     uint16_t flags() const { return (m >> 12) & 0xFFFF; }
     int promo() const { return (m >> 28) & 0xF; }
+    bool is_null() const { return m == 0; }
 };
 
 // ---------- Minimal undo record (compact) ----------

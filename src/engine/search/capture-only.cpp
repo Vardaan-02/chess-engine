@@ -1,17 +1,19 @@
 #include "engine/search.h"
 #include "chess/movegen.h"
+#include "engine/move_orderer.h"
 
-int Search::search_captures_only(Board& board, int alpha, int beta)
+
+int Search::search_captures_only(Board& board, int ply, int alpha, int beta)
 {   
     nodes_searched++;
     int score = evaluate(board);
     if(score >= beta) return beta;
     if(score > alpha) alpha = score;
 
-    std::vector<chess::Move> capturesOnlyMoveList;
-    MoveGen::init(board, capturesOnlyMoveList, true);
+    MoveOrderer orderer(board, ply, *this, true);
+    chess::Move move;
 
-    for(auto& move : capturesOnlyMoveList)
+    while(!(move = orderer.get_next_move()).is_null())
     {
         board.make_move(move);
         if(!board.is_position_legal()){
@@ -19,7 +21,7 @@ int Search::search_captures_only(Board& board, int alpha, int beta)
             continue;
         }
         
-        score = -search_captures_only(board, -beta, -alpha);
+        score = -search_captures_only(board, ply+1, -beta, -alpha);
         board.unmake_move(move);
 
         if(score >= beta) return beta;
