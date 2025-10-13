@@ -432,11 +432,38 @@ bool Board::square_attacked(chess::Square sq, bool by_white) const{
     return false;
 }
 
+uint64_t Board::attackers_to(chess::Square sq, bool by_white) const {
+    uint64_t attackers_bitboard = 0;
+    chess::Color attackerColor = by_white ? chess::WHITE : chess::BLACK;
+
+    // 1. Pawns
+    // so we use !by_white.
+    attackers_bitboard |= chess::PawnAttacks[!by_white][sq] & bitboard[chess::make_piece(attackerColor, chess::PAWN)];
+
+    // 2. Knights
+    attackers_bitboard |= chess::KnightAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KNIGHT)];
+
+    // 3. King
+    attackers_bitboard |= chess::KingAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KING)];
+
+    // Define bitboards for the attacker's sliding pieces
+    uint64_t orthogonal_pieces = bitboard[chess::make_piece(attackerColor, chess::ROOK)] | bitboard[chess::make_piece(attackerColor, chess::QUEEN)];
+    uint64_t diagonal_pieces = bitboard[chess::make_piece(attackerColor, chess::BISHOP)] | bitboard[chess::make_piece(attackerColor, chess::QUEEN)];
+
+    // 4. Orthogonal Sliders (Rooks & Queens)
+    attackers_bitboard |= chess::get_orthogonal_slider_attacks(sq, occupied) & orthogonal_pieces;
+
+    // 5. Diagonal Sliders (Bishops & Queens)
+    attackers_bitboard |= chess::get_diagonal_slider_attacks(sq, occupied) & diagonal_pieces;
+
+    return attackers_bitboard;
+}
+
 bool Board::is_position_legal()
 {
       chess::Square king_sq = white_to_move
             ? black_king_sq 
             : white_king_sq;
 
-    return !(square_attacked(king_sq, white_to_move));
+    return util::count_bits(square_attacked(king_sq, white_to_move)) == 0;
 }

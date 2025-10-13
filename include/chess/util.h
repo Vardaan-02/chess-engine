@@ -193,4 +193,8 @@ namespace util{
         if (m.from() == m.to()) return "NULL";
         return square_to_string(m.from()) + square_to_string(m.to());
     }
+
+    constexpr int flip(int sq) {
+    return sq ^ 56;
+}
 };

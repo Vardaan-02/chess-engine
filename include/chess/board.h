@@ -23,7 +23,7 @@ public:
     uint64_t check_mask; // rays + checker squares
 
     // --- Square array for O(1) lookup
-    int8_t board_array[64];
+    chess::Piece board_array[64];
 
     // --- Side to move
     bool white_to_move;
@@ -109,8 +109,9 @@ public:
 
     // Queries
     bool isempty(chess::Square sq) const { return board_array[sq] == chess::NO_PIECE; }
-    int piece_on_sq(chess::Square sq) const { return board_array[sq]; }
+    chess::Piece piece_on_sq(chess::Square sq) const { return board_array[sq]; }
     bool square_attacked(chess::Square sq, bool by_white) const; // uses attack tables
+    uint64_t attackers_to(chess::Square sq, bool by_white) const;
     bool is_position_legal();
 
 private:

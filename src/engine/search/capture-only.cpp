@@ -11,8 +11,6 @@ int Search::search_captures_only(Board& board, int alpha, int beta)
     std::vector<chess::Move> capturesOnlyMoveList;
     MoveGen::init(board, capturesOnlyMoveList, true);
 
-    int legal_moves_found = 0;
-
     for(auto& move : capturesOnlyMoveList)
     {
         board.make_move(move);
