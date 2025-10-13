@@ -62,8 +62,6 @@ private:
      * @return The score in centipawns. Positive is good for the current player.
      */
 
-    int evaluate(const Board& b);
-
     inline void update_killers(int ply, const chess::Move& move) {
         if (killer_moves[ply][0].m != move.m) {
             killer_moves[ply][1] = killer_moves[ply][0];
