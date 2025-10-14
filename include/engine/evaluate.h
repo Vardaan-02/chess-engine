@@ -172,13 +172,13 @@ constexpr EvalData eval_data = {
     .doubled_pawn_penalty  = {-25, -35},
     .isolated_pawn_penalty = {-15, -25},
     .passed_pawn_bonus     = {{
-    {  0,   0 },  // Rank 1 (impossible)
-    {  5,  15 },  // Rank 2 (starting rank)
-    { 10,  25 },  // Rank 3
-    { 20,  45 },  // Rank 4
-    { 35,  75 },  // Rank 5 (major threat)
-    { 60, 125 },  // Rank 6 (very dangerous)
-    { 100, 220},  // Rank 7 (unstoppable)
+    {   0,   0 },  // Rank 1 (impossible)
+    {  20,  50 },  // Rank 2 (starting rank)
+    {  35,  70 },  // Rank 3
+    {  45, 100 },  // Rank 4
+    {  65, 150 },  // Rank 5 (major threat)
+    { 165, 245 },  // Rank 6 (very dangerous)
+    { 235, 425 },  // Rank 7 (unstoppable)
     {   0,   0 }   // Rank 8 (promotion)},
     }},
 
@@ -189,14 +189,14 @@ constexpr EvalData eval_data = {
         {-25, -30}   // Larger penalty if pawn advanced two+ squares
     }},
 
-    .open_file_penalty = {-30, -40}, // Penalty if a shielding pawn is missing entirely
+    .open_file_penalty = {-100, -20}, // Penalty if a shielding pawn is missing entirely
 
     .king_attack_weights = {{
         0, // NO_PIECE
-        2, // KNIGHT
-        2, // BISHOP
-        3, // ROOK
-        5, // QUEEN
+        50, // KNIGHT
+        60, // BISHOP
+        80, // ROOK
+        100, // QUEEN
         0  // KING
     }},
 

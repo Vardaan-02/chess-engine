@@ -9,7 +9,7 @@ eval::TaperedScore king_safety_score(const Board& b, chess::Color color) {
 
     // --- Part 1: Pawn Shield Evaluation (Corrected) ---
     for (int file_idx = king_file - 1; file_idx <= king_file + 1; ++file_idx) {
-        if (file_idx < util::FileA || file_idx > util::FileH) {
+        if (file_idx < 0 || file_idx > 7) {
             continue; 
         }
 
@@ -37,6 +37,7 @@ eval::TaperedScore king_safety_score(const Board& b, chess::Color color) {
     // --- Part 2: Attacks on the King Zone (This part was already correct) ---
     int attack_score = 0;
     chess::Color enemy_color = (color == chess::WHITE) ? chess::BLACK : chess::WHITE;
+    bool by_white = (enemy_color == chess::WHITE);
     int king_rank = util::get_rank(king_square); // king_file is already defined above
 
     for (int df = -1; df <= 1; ++df) {
@@ -46,9 +47,9 @@ eval::TaperedScore king_safety_score(const Board& b, chess::Color color) {
             int target_file = king_file + df;
             int target_rank = king_rank + dr;
 
-            if (target_file >= util::FileA && target_file <= util::FileH && target_rank >= util::Rank1 && target_rank <= util::Rank8) {
+            if (target_file >= 0 && target_file <= 7 && target_rank >= 0 && target_rank <= 7) {
                 chess::Square target_sq = chess::Square(target_rank * 8 + target_file);
-                uint64_t attackers = b.attackers_to(target_sq, enemy_color);
+                uint64_t attackers = b.attackers_to(target_sq, by_white);
 
                 while (attackers) {
                     chess::Square attacker_sq = util::pop_lsb(attackers);
@@ -135,7 +136,7 @@ void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
             eg_score -= eval::eval_data.isolated_pawn_penalty.eg;
         }
     }    
-
+    
     // Doubled Pawns Penalty
     for (auto file : chess::files) {
         uint64_t pawns_on_file_white = b.bitboard[chess::WP] & file;

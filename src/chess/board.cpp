@@ -471,8 +471,7 @@ uint64_t Board::attackers_to(chess::Square sq, bool by_white) const {
     chess::Color attackerColor = by_white ? chess::WHITE : chess::BLACK;
 
     // 1. Pawns
-    // so we use !by_white.
-    attackers_bitboard |= chess::PawnAttacks[!by_white][sq] & bitboard[chess::make_piece(attackerColor, chess::PAWN)];
+    attackers_bitboard |= chess::PawnAttacks[by_white][sq] & bitboard[chess::make_piece(attackerColor, chess::PAWN)];
 
     // 2. Knights
     attackers_bitboard |= chess::KnightAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KNIGHT)];
