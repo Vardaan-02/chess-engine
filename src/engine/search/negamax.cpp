@@ -6,8 +6,22 @@
 // Does not check for 50 move rule, 3 repetitions yet
 int Search::negamax(Board& board, int depth, int ply, int alpha, int beta)
 {
+    TTEntry entry{};
+    int og_alpha = alpha;
+
+    if(TT.probe(board.zobrist_key, entry)){
+        if(entry.depth >= depth)
+        {
+            if(entry.bound == TTEntry::EXACT) return entry.score;
+            if(entry.bound == TTEntry::LOWER_BOUND) alpha = std::max(alpha, entry.score);
+            if(entry.bound == TTEntry::UPPER_BOUND) beta = std::min(beta, entry.score);
+        }
+
+        if(alpha >= beta) return entry.score;
+    }
+
+
     nodes_searched++;    
-    
     // Base case: If we've reached the desired depth, switch to quiescence search.
     if (depth == 0) {
         return search_captures_only(board, ply, alpha, beta);
@@ -16,6 +30,7 @@ int Search::negamax(Board& board, int depth, int ply, int alpha, int beta)
     
     MoveOrderer orderer(board, ply, *this, false);
     chess::Move move;
+    chess::Move best_move;
 
     int legal_moves_found = 0;
     
@@ -34,15 +49,19 @@ int Search::negamax(Board& board, int depth, int ply, int alpha, int beta)
         board.unmake_move(move);
 
         if (score >= beta) {
-            if(move.flags() != chess::FLAG_CAPTURE && move.flags() != chess::FLAG_CAPTURE_PROMO && move.flags() != chess::FLAG_EP || move.flags() != chess::FLAG_PROMO) 
+            if(move.flags() != chess::FLAG_CAPTURE && move.flags() != chess::FLAG_CAPTURE_PROMO && move.flags() != chess::FLAG_EP && move.flags() != chess::FLAG_PROMO) 
             {
                 update_killers(ply, move);
                 update_history(board, move, depth); //need to implement some sort of ageing mechanism so that the quiet moves dont just take over
             }
 
+            entry = { board.zobrist_key, (uint8_t)depth, score, TTEntry::LOWER_BOUND, move };
+            TT.store(entry);
+
             return beta; // Beta-cutoff, a huge performance gain.
         }
         if (score > alpha) {
+            best_move = move;
             alpha = score; // We've found a new best move.
         }
     }
@@ -50,8 +69,15 @@ int Search::negamax(Board& board, int depth, int ply, int alpha, int beta)
     // After checking all moves, if we found no legal ones, it's mate or stalemate.
     if (legal_moves_found == 0) {
         // checkmate + ply to favor checkmates found with least amount of moves
+        entry = { board.zobrist_key, (int8_t)MAX_PLY, board.checks ? CHECKMATE_EVAL + ply : DRAW_EVAL, TTEntry::EXACT, {} };
+        TT.store(entry);
         return board.checks ? CHECKMATE_EVAL + ply : DRAW_EVAL;
     }
     
+    TTEntry::Bound bound = (alpha <= og_alpha) ? TTEntry::UPPER_BOUND : TTEntry::EXACT;
+
+    entry = { board.zobrist_key, (uint8_t)depth, alpha, bound, best_move };
+    TT.store(entry);
+
     return alpha;
 }

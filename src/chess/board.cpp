@@ -1,5 +1,6 @@
 #include "board.h"
 #include "bitboard.h"
+#include "zobrist.h"
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
@@ -88,6 +89,7 @@ void Board::set_fen(std::string &fen_cstr) {
     }
 
     fullmove_number = fullmove;
+    zobrist_key = Zobrist::calculate_zobrist_hash(*this);
     update_king_squares_from_bitboards();
     update_occupancies();
     compute_pins_and_checks();
@@ -221,16 +223,28 @@ void Board::make_move(const chess::Move &mv) {
     undo.checks  = checks;
     undo.pinned = pinned;
     undo.double_check = double_check;
+    undo.zobrist_before = zobrist_key;
 
     // 2. Extract move details
     const chess::Square from = (chess::Square)mv.from();
     const chess::Square to = (chess::Square)mv.to();
     const uint16_t flags = mv.flags();
+    
+    const chess::Piece moving_piece = (chess::Piece)board_array[from];  //remove the moved piece
 
-    const chess::Piece moving_piece = (chess::Piece)board_array[from];
+    zobrist_key ^= Zobrist::piecesArray[moving_piece][from];
+
     chess::Piece captured_piece = (flags & chess::FLAG_EP) 
         ? (white_to_move ? chess::BP : chess::WP)
         : (chess::Piece)board_array[to];
+
+    if(captured_piece != chess::NO_PIECE){ 
+        if(flags & chess::FLAG_EP){
+            zobrist_key ^= Zobrist::piecesArray[captured_piece][white_to_move ? to - 8 : to + 8];  //remove captured piece
+        }
+        else zobrist_key ^= Zobrist::piecesArray[captured_piece][to];  //remove captured piece
+    }
+    zobrist_key ^= Zobrist::piecesArray[moving_piece][to];  //add the moved piece
 
     // Reset halfmove clock if it's a pawn move or capture
     if (chess::type_of(moving_piece) == chess::PAWN || captured_piece != chess::NO_PIECE) {
@@ -267,6 +281,9 @@ void Board::make_move(const chess::Move &mv) {
         // Place the new piece
         util::set_bit(bitboard[promo_piece], to);
         board_array[to] = promo_piece;
+
+        zobrist_key ^= Zobrist::piecesArray[moving_piece][to]; //since the pawn is no longer at the destination square
+        zobrist_key ^= Zobrist::piecesArray[promo_piece][to];
     }
     else if (flags == chess::FLAG_EP) {
         move_piece_bb(moving_piece, from, to);
@@ -282,6 +299,9 @@ void Board::make_move(const chess::Move &mv) {
         else if (to == chess::G8) { rook_from = chess::H8; rook_to = chess::F8; }
         else /* (to == C8) */ { rook_from = chess::A8; rook_to = chess::D8; }
         move_piece_bb((chess::Piece)board_array[rook_from], rook_from, rook_to);
+
+        zobrist_key ^= Zobrist::piecesArray[chess::make_piece(white_to_move ? chess::WHITE : chess::BLACK,chess::ROOK)][rook_from];
+        zobrist_key ^= Zobrist::piecesArray[chess::make_piece(white_to_move ? chess::WHITE : chess::BLACK,chess::ROOK)][rook_to];
     }
     // Handle pawn double push to set en passant square
     else if (flags == chess::FLAG_DOUBLE_PUSH) {
@@ -308,6 +328,17 @@ void Board::make_move(const chess::Move &mv) {
     if (from == chess::H8 || to == chess::H8) {
         castle_rights &= chess::CastlingRights(~chess::BLACK_KINGSIDE);
     }
+
+    zobrist_key ^= Zobrist::castlingRights[undo.prev_castle_rights];
+    zobrist_key ^= Zobrist::castlingRights[castle_rights];
+    
+    if(undo.prev_en_passant_sq != chess::SQUARE_NONE)
+    {
+       zobrist_key ^= Zobrist::enPassantKey[undo.prev_en_passant_sq];
+    }
+    if (en_passant_sq != chess::SQUARE_NONE) {
+        zobrist_key ^= Zobrist::enPassantKey[en_passant_sq];
+    }
     
     // 5. Update king square if it moved
     if (moving_piece == chess::WK) white_king_sq = to;
@@ -316,6 +347,8 @@ void Board::make_move(const chess::Move &mv) {
     // 6. Update fullmove number and switch side
     if (!white_to_move) fullmove_number++;
     white_to_move = !white_to_move;
+
+    zobrist_key ^= Zobrist::sideToMove; //Always flip this
 
     // 7. Update combined bitboards
     update_occupancies();
@@ -347,6 +380,7 @@ void Board::unmake_move(const chess::Move &mv) {
     checks  = undo.checks;
     pinned = undo.pinned;
     double_check = undo.double_check;
+    zobrist_key = undo.zobrist_before;
 
     // Switch side back
     white_to_move = !white_to_move;

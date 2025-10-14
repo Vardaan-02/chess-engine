@@ -5,7 +5,7 @@
 #include <vector>
 #include <algorithm>
 
-Search::Search(): nodes_searched(0) { /*Empty Constructor*/ }
+Search::Search(size_t size_of_tt_mb): nodes_searched(0), TT(size_of_tt_mb) { /*Empty Constructor*/ }
 
 chess::Move Search::start_search(Board& board, int depth)
 {

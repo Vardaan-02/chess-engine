@@ -5,6 +5,7 @@
 #include "board.h"
 #include "chess/types.h"
 #include "chess/movegen.h"
+#include "transposition.h"
 
 #define DRAW_EVAL 0
 #define CHECKMATE_EVAL -(int)1e7
@@ -16,7 +17,7 @@ class MoveOrderer;
 class Search {
 public:
     // Constructor
-    Search();
+    Search(size_t size_of_tt_mb);
 
     /**
      * @brief The main entry point to begin a search.
@@ -33,6 +34,7 @@ public:
     chess::Move killer_moves[MAX_PLY][2];
     int history_scores[15][64]{}; // [piece][dest_sq]
     static int evaluate(const Board& b);
+    TranspositionTable TT;
 
 private:
     /**
