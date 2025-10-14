@@ -31,6 +31,7 @@ void printSectionHeader(const std::string& title) {
 }
 
 int main() {
+    chess::init();
     std::cout << "========== CHESS ENGINE EVALUATION TEST SUITE ==========\n";
 
     // ##################################################################
@@ -79,20 +80,16 @@ int main() {
     printSectionHeader("Piece-Square Table (PST) Tests");
     
     testEvaluate(
-        "8/8/8/3N4/8/8/8/8 w - - 0 1",
+        "8/k7/8/3N4/8/8/K7/n7 w - - 0 1",
         "Centralized White Knight: Score should be positive from PST."
     );
     testEvaluate(
-        "N7/8/8/8/8/8/8/8 w - - 0 1",
+        "N7/K7/8/8/8/8/k7/8 w - - 0 1",
         "White Knight on the Rim ('a' file): Should be penalized by PST."
     );
     testEvaluate(
-        "8/6b1/8/8/8/8/8/8 b - - 0 1",
+        "k7/6b1/8/8/8/8/8/K7 b - - 0 1",
         "Black Bishop on long diagonal: Should be a good score for black (negative total)."
-    );
-    testEvaluate(
-        "r3k2r/8/8/8/8/8/8/R3K2R w KQkq - 0 1",
-        "Rooks on open files: Should be positive due to rook placement."
     );
     testEvaluate(
         "8/8/8/8/8/3K4/8/k7 w - - 0 1",
@@ -107,15 +104,15 @@ int main() {
     // Note: Your current engine doesn't explicitly evaluate these.
     // When you add these features, these tests will become useful.
     testEvaluate(
-        "8/k7/8/3p4/8/3P4/8/K7 w - - 0 1",
-        "Isolated Pawns (d3 for White, d5 for Black): May result in penalties for both."
+        "8/kppp2pp/8/8/8/K5P1/PPPP4/8 w - - 0 1",
+        "Isolated Pawns (g3 for White): Result in penalties for white."
     );
     testEvaluate(
-        "8/k7/8/3p4/3P4/8/8/K7 w - - 0 1",
-        "Doubled Pawns (d4, d5 for White): Should be a penalty for White."
+        "8/kppp4/8/8/8/K1P5/2PP4/8 w - - 0 1",
+        "Doubled Pawns (c2, c3 for White): Should be a penalty for White."
     );
     testEvaluate(
-        "8/k5P1/8/8/8/8/8/K7 w - - 0 1",
+        "8/1ppp3P/k7/8/8/K7/8/8 w - - 0 1",
         "Passed Pawn (g7 for White): Should be a massive advantage for White."
     );
 
@@ -129,15 +126,15 @@ int main() {
         "Good King Safety for both sides: King safety scores should be minimal."
     );
     testEvaluate(
-        "4k3/8/8/8/8/8/PPPPPPPP/RNBQK2R w KQ - 0 1",
-        "Exposed White King (No pawn shield on g/h): Should apply a penalty to White."
+        "rnbq1rk1/pppp4/1b2pn2/8/8/1B2PN2/3P1PPP/RNBQ1RK1 w - - 0 1",
+        "Exposed Black King (No pawn shield on f, g, h): Should apply a penalty to Black."
     );
     testEvaluate(
-        "r2q1rk1/ppp1nppp/3p1b2/8/3P3N/6P1/PP2PP1P/R1BQR1K1 b - - 0 14",
-        "King under Attack (White's H4 knight attacks g6): Should increase White's attack score."
+        "1nb1k1n1/pppppppp/5b1r/5K2/7r/6q1/PPPPPPPP/RNBQ1BNR b - - 0 1",
+        "White king under Attack : Should increase Black's attack score."
     );
      testEvaluate(
-        "rnb1kbnr/pppp1p1p/6p1/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR b KQkq - 1 3",
+        "rnbqkbnr/pppp1ppp/8/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 1 3",
         "Direct Queen Attack (Scholar's Mate threat): White's attack score should be high."
     );
 
