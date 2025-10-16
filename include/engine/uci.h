@@ -1,5 +1,14 @@
 #pragma once
 
+#include <iostream>
+#include <string>
+#include <vector>
+#include <sstream>
+#include <thread>
+
+#include "chess/movegen.h"
+#include "engine/search.h"
+
 /**
  * @file uci.h
  * @brief Declares the main loop for the Universal Chess Interface (UCI).

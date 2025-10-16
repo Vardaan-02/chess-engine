@@ -193,6 +193,18 @@ int main() {
         "Complex Late Middlegame: Black has attacking chances, score should likely be negative."
     );
 
+    testEvaluate(
+        "rnbqkb1r/pppp1ppp/8/3Pp3/8/5P2/PPPP2PP/RNBQKBNR b KQ - 0 1",
+        "For Testing Purposes: FEN should be handled."
+    );
+
+    testEvaluate(
+        "rnbqkb1r/pppp1ppp/8/1B1np3/4P3/5P2/PPPP2PP/RNBQK1NR w KQ - 0 1",
+        "For Testing Purposes: FEN should be handled."
+    );
+
+    printSectionHeader("End of Tests");
+
     std::cout << "\n========== ALL TESTS COMPLETED ==========\n";
     return 0;
 }

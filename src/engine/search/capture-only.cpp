@@ -19,7 +19,11 @@ int Search::search_captures_only(Board& board, int ply, int64_t alpha, int64_t b
     }
 
     nodes_searched++;
+<<<<<<< HEAD
     int64_t score = evaluate(board);
+=======
+    int score = board.white_to_move ? evaluate(board) : -evaluate(board);
+>>>>>>> fbd576e (minor changes)
     if(score >= beta) return beta;
     if(score > alpha) alpha = score;
 

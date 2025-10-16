@@ -193,10 +193,10 @@ constexpr EvalData eval_data = {
 
     .king_attack_weights = {{
         0, // NO_PIECE
-        50, // KNIGHT
-        60, // BISHOP
-        80, // ROOK
-        100, // QUEEN
+        2, // KNIGHT
+        2, // BISHOP
+        3, // ROOK
+        5, // QUEEN
         0  // KING
     }},
 

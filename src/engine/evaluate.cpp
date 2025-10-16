@@ -141,13 +141,13 @@ void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
     for (auto file : chess::files) {
         uint64_t pawns_on_file_white = b.bitboard[chess::WP] & file;
         if (util::count_bits(pawns_on_file_white) > 1) {
-            mg_score += eval::eval_data.doubled_pawn_penalty.mg;
-            eg_score += eval::eval_data.doubled_pawn_penalty.eg;
+            mg_score += eval::eval_data.doubled_pawn_penalty.mg * util::count_bits(pawns_on_file_white);
+            eg_score += eval::eval_data.doubled_pawn_penalty.eg * util::count_bits(pawns_on_file_white);
         }
         uint64_t pawns_on_file_black = b.bitboard[chess::BP] & file;
         if (util::count_bits(pawns_on_file_black) > 1) {
-            mg_score -= eval::eval_data.doubled_pawn_penalty.mg;
-            eg_score -= eval::eval_data.doubled_pawn_penalty.eg;
+            mg_score -= eval::eval_data.doubled_pawn_penalty.mg * util::count_bits(pawns_on_file_black);
+            eg_score -= eval::eval_data.doubled_pawn_penalty.eg * util::count_bits(pawns_on_file_black);
         }
     }
 }
@@ -314,11 +314,17 @@ int Search::evaluate(const Board& b) {
     int game_phase = 0;
 
     pawn_evaluation(b, mg_score, eg_score);
+    // std::cout << "Pawn Eval: " << mg_score << " (MG), " << eg_score << " (EG)" << std::endl;
     knight_evaluation(b, mg_score, eg_score, game_phase);
+    // std::cout << "Knight Eval: " << mg_score << " (MG), " << eg_score << " (EG)" << std::endl;
     bishop_evaluation(b, mg_score, eg_score, game_phase);
+    // std::cout << "Bishop Eval: " << mg_score << " (MG), " << eg_score << " (EG)" << std::endl;
     rook_evaluation(b, mg_score, eg_score, game_phase);
+    // std::cout << "Rook Eval: " << mg_score << " (MG), " << eg_score << " (EG)" << std::endl;
     queen_evaluation(b, mg_score, eg_score, game_phase);
+    // std::cout << "Queen Eval: " << mg_score << " (MG), " << eg_score << " (EG)" << std::endl;
     king_evaluation(b, mg_score, eg_score);
+    // std::cout << "King Eval: " << mg_score << " (MG), " << eg_score << " (EG)" << std::endl;
 
     // Clamp game phase to valid range
     game_phase = std::max(0, std::min(game_phase, eval::TOTAL_PHASE));
