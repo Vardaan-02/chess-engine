@@ -45,7 +45,7 @@ private:
      * @param beta The upper bound for the score (best score for minimizing player).
      * @return The evaluation of the position from the side-to-move's perspective.
      */
-    int negamax(Board& board, int depth, int ply, int alpha, int beta);
+    int negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta);
 
     /**
      * @brief Quiescence search to stabilize the evaluation at horizon nodes.
@@ -55,7 +55,7 @@ private:
      * @param beta The upper bound for the score.
      * @return The stabilized evaluation of the position.
      */
-    int search_captures_only(Board& board, int ply, int alpha, int beta);
+    int search_captures_only(Board& board, int ply, int64_t alpha, int64_t betas);
 
     /**
      * @brief Evaluates the board from the perspective of the side to move.

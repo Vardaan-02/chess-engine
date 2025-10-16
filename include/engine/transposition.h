@@ -9,7 +9,7 @@ struct TTEntry {
     // The depth of the search that stored this entry.
     uint8_t depth;
     // The score of the position from the perspective of the side to move.
-    int score;
+    int64_t score;
     // The type of score (exact, a lower bound, or an upper bound).
     enum Bound : uint8_t { EXACT, LOWER_BOUND, UPPER_BOUND } bound;
     // The best move found for this position.

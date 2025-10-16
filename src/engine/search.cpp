@@ -9,16 +9,20 @@ Search::Search(size_t size_of_tt_mb): nodes_searched(0), TT(size_of_tt_mb) { /*E
 
 chess::Move Search::start_search(Board& board, int depth)
 {
+    TT.clear();
+    nodes_searched = 0; // Also reset statistics
+
     std::vector<chess::Move> moveList;
     MoveGen::init(board, moveList, false);
     chess::Move bestMove{};
     // int legal_moves_found = 0;
 
-    int alpha = NEG_INFINITY_EVAL; 
-    int beta = -NEG_INFINITY_EVAL; 
-
+    int64_t alpha = NEG_INFINITY_EVAL; 
+    int64_t beta = -NEG_INFINITY_EVAL; 
+    // std::cout << moveList.size() << '\n';
     for(auto& move : moveList)
     {
+        
         board.make_move(move);
         if(!board.is_position_legal()){
             board.unmake_move(move);
@@ -26,7 +30,9 @@ chess::Move Search::start_search(Board& board, int depth)
         }
         // legal_moves_found++;
         
-        int score = -negamax(board, depth-1, 1, -beta, -alpha);
+        int64_t score = -negamax(board, depth-1, 1, -beta, -alpha);
+
+        std::cout << util::move_to_string(move) << ": " << score << '\n';
 
         if(score > alpha)
         {

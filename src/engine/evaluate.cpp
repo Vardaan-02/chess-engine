@@ -325,5 +325,7 @@ int Search::evaluate(const Board& b) {
 
     int final_score = (mg_score * game_phase + eg_score * (eval::TOTAL_PHASE - game_phase)) / eval::TOTAL_PHASE;
 
-    return final_score;
+    // return final_score;
+    return b.white_to_move ? final_score : -final_score;
+
 }

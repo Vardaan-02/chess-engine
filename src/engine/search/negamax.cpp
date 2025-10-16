@@ -4,10 +4,10 @@
 
 
 // Does not check for 50 move rule, 3 repetitions yet
-int Search::negamax(Board& board, int depth, int ply, int alpha, int beta)
+int Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta)
 {
     TTEntry entry{};
-    int og_alpha = alpha;
+    int64_t og_alpha = alpha;
 
     if(TT.probe(board.zobrist_key, entry)){
         if(entry.depth >= depth)
@@ -45,7 +45,7 @@ int Search::negamax(Board& board, int depth, int ply, int alpha, int beta)
         // If we get here, we've found at least one legal move.
         legal_moves_found++;
 
-        int score = -negamax(board, depth - 1, ply+1, -beta, -alpha);
+        int64_t score = -negamax(board, depth - 1, ply+1, -beta, -alpha);
         board.unmake_move(move);
 
         if (score >= beta) {

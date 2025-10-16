@@ -1,4 +1,4 @@
-#include "transposition.h"
+#include "engine/transposition.h"
 #include <cstring>
 
 TranspositionTable::TranspositionTable(size_t size_mb)
