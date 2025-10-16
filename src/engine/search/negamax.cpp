@@ -4,7 +4,7 @@
 
 
 // Does not check for 50 move rule, 3 repetitions yet
-int Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta)
+int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta)
 {
     TTEntry entry{};
     int64_t og_alpha = alpha;
@@ -19,7 +19,6 @@ int Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t bet
 
         if(alpha >= beta) return entry.score;
     }
-
 
     nodes_searched++;    
     // Base case: If we've reached the desired depth, switch to quiescence search.

@@ -1,45 +1,103 @@
-
 #include "engine/search.h"
 #include "chess/movegen.h"
 #include "engine/move_orderer.h"
+#include "utils/threadpool.h"
 #include <vector>
 #include <algorithm>
 
-Search::Search(size_t size_of_tt_mb): nodes_searched(0), TT(size_of_tt_mb) { /*Empty Constructor*/ }
+Search::Search(size_t s): nodes_searched(0), TT(s), stopSearch(false), pool(std::max(1u, std::thread::hardware_concurrency())) { }
 
-chess::Move Search::start_search(Board& board, int depth)
-{
-    TT.clear();
-    nodes_searched = 0; // Also reset statistics
-
-    std::vector<chess::Move> moveList;
-    MoveGen::init(board, moveList, false);
-    chess::Move bestMove{};
-    // int legal_moves_found = 0;
-
-    int alpha = CHECKMATE_EVAL-1; 
-    int beta = -CHECKMATE_EVAL+1; 
-
-    for(auto& move : moveList)
-    {
-        
-        board.make_move(move);
-        if(!board.is_position_legal()){
-            board.unmake_move(move);
-            continue;
-        }
-        // legal_moves_found++;
-        
-        int64_t score = -negamax(board, depth-1, 1, -beta, -alpha);
-
-        std::cout << util::move_to_string(move) << ": " << score << '\n';
-
-        if(score > alpha)
-        {
-            alpha = score;
-            bestMove = move;
-        }
-        board.unmake_move(move);
+void move_to_front(std::vector<chess::Move>& moves, const chess::Move& move_to_find) {
+    auto it = std::find_if(moves.begin(), moves.end(), [&](const chess::Move& m) { return m.m == move_to_find.m; });
+    if (it != moves.end()) {
+        std::rotate(moves.begin(), it, it + 1);
     }
-    return bestMove; // Will be a null move if no legal moves exist
+}
+
+chess::Move Search::start_search(Board& board, int depth) {
+    stopSearch.store(false);
+    TT.clear();
+    
+    chess::Move best_move_overall{};
+    int64_t last_score = 0;
+
+    for (int i = 1; i <= depth; ++i) {
+        nodes_searched = 0;
+        
+        int64_t alpha, beta;
+        if (i > 4) {
+            int64_t delta = 500;
+            alpha = last_score - delta;
+            beta = last_score + delta;
+        } else {
+            alpha = CHECKMATE_EVAL;
+            beta = -CHECKMATE_EVAL;
+        }
+
+        while(true) {
+            std::vector<chess::Move> moveList;
+            MoveGen::init(board, moveList, false);
+            if (!best_move_overall.is_null()) {
+                move_to_front(moveList, best_move_overall);
+            }
+
+            int64_t current_alpha = alpha;
+            chess::Move best_move_this_iter{};
+
+            if (!moveList.empty()) {
+                chess::Move m = moveList[0];
+                board.make_move(m);
+                if (board.is_position_legal()) {
+                    int64_t s = -negamax(board, i - 1, 1, -beta, -current_alpha);
+                    if (s > current_alpha) {
+                        current_alpha = s;
+                        best_move_this_iter = m;
+                    }
+                }
+                board.unmake_move(m);
+            }
+            if (stopSearch.load()) break;
+
+            std::vector<std::pair<std::future<int64_t>, chess::Move>> futures;
+            for (size_t j = 1; j < moveList.size(); ++j) {
+                Board b_copy = board;
+                b_copy.make_move(moveList[j]);
+                if (!b_copy.is_position_legal()) continue;
+                futures.push_back({pool.enqueue(&Search::negamax, this, b_copy, i - 1, 1, -beta, -current_alpha), moveList[j]});
+            }
+            
+            for (auto& [future, move] : futures) {
+                if (stopSearch.load()) break;
+                int64_t s = -future.get();
+                if (s > current_alpha) {
+                    current_alpha = s;
+                    best_move_this_iter = move;
+                }
+
+                // std::cout << s << ": " << util::move_to_string(move) << '\n';
+            }
+            
+            if (stopSearch.load()) break;
+
+            if (current_alpha <= alpha) { // Fail-low
+                alpha = CHECKMATE_EVAL;
+                continue;
+            }
+            if (current_alpha >= beta) { // Fail-high
+                beta = -CHECKMATE_EVAL;
+                continue;
+            }
+            
+            last_score = current_alpha;
+            if (!best_move_this_iter.is_null()) {
+                best_move_overall = best_move_this_iter;
+            }
+            TTEntry entry = { board.zobrist_key, (uint8_t)i, last_score, TTEntry::EXACT, best_move_overall };
+            TT.store(entry);
+            break; 
+        }
+        if (stopSearch.load()) break;
+    }
+    
+    return best_move_overall;
 }

@@ -3,7 +3,7 @@
 #include "engine/move_orderer.h"
 
 
-int Search::search_captures_only(Board& board, int ply, int64_t alpha, int64_t beta)
+int64_t Search::search_captures_only(Board& board, int ply, int64_t alpha, int64_t beta)
 {   
     TTEntry entry{};
     int64_t og_alpha = alpha;
@@ -19,7 +19,7 @@ int Search::search_captures_only(Board& board, int ply, int64_t alpha, int64_t b
     }
 
     nodes_searched++;
-    int score = board.white_to_move ? evaluate(board) : -evaluate(board);
+    int64_t score = evaluate(board);
     if(score >= beta) return beta;
     if(score > alpha) alpha = score;
 

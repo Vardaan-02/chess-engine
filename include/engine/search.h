@@ -6,6 +6,7 @@
 #include "chess/types.h"
 #include "chess/movegen.h"
 #include "transposition.h"
+#include "utils/threadpool.h"
 
 #define DRAW_EVAL 0
 #define CHECKMATE_EVAL -(int)1e7
@@ -32,9 +33,12 @@ public:
     // Publicly accessible search statistics
     uint64_t nodes_searched;
     chess::Move killer_moves[MAX_PLY][2];
+    chess::Move pv_table[MAX_PLY][MAX_PLY];
     int history_scores[15][64]{}; // [piece][dest_sq]
     static int evaluate(const Board& b);
     TranspositionTable TT;
+    std::atomic<bool> stopSearch;
+    ThreadPool pool;
 
 private:
     /**
@@ -45,7 +49,7 @@ private:
      * @param beta The upper bound for the score (best score for minimizing player).
      * @return The evaluation of the position from the side-to-move's perspective.
      */
-    int negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta);
+    int64_t negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta);
 
     /**
      * @brief Quiescence search to stabilize the evaluation at horizon nodes.
@@ -55,7 +59,7 @@ private:
      * @param beta The upper bound for the score.
      * @return The stabilized evaluation of the position.
      */
-    int search_captures_only(Board& board, int ply, int64_t alpha, int64_t betas);
+    int64_t search_captures_only(Board& board, int ply, int64_t alpha, int64_t betas);
 
     /**
      * @brief Evaluates the board from the perspective of the side to move.

@@ -42,22 +42,22 @@ int main() {
 
     std::vector<TestCase> tests = {
         // Mate in 1. Requires depth 1. (Legal's Mate pattern)
-        {"r1bqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4", 4, "f3f7"},
+        {"r1bqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4", 8, "f3f7"},
 
         // Mate in 1. Requires depth 1.
-        {"6k1/3br3/1p1p2p1/p1pP4/PPPb2r1/3B4/8/3R1K2 b - - 0 49", 6, "g4g1"},
+        {"6k1/3br3/1p1p2p1/p1pP4/PPPb2r1/3B4/8/3R1K2 b - - 0 49", 8, "g4g1"},
 
         // // Mate in 2, depth 4
         {"6k1/3b4/1p1p2p1/p1pPbr2/P1P3K1/1P6/4r3/3R4 b - - 1 51", 8, "e2f2"}, //e2f2 then f5f2
 
         // Winning knight.
-        {"rnbqkbnr/p1pppppp/8/1p6/2N1P3/8/PPPP1PPP/R1BQKBNR b KQkq - 0 1", 2, "b5c4"},
+        {"rnbqkbnr/p1pppppp/8/1p6/2N1P3/8/PPPP1PPP/R1BQKBNR b KQkq - 0 1", 6, "b5c4"},
 
         // Passed Pawn.
-        {"8/5ppp/1P5k/8/8/6P1/5PKP/8 w - - 0 1", 6, "b6b7"}
+        {"8/5ppp/1P5k/8/8/6P1/5PKP/8 w - - 0 1", 7, "b6b7"}
     };
 
-    Search search_agent(64);
+    Search search_agent(128);
     int passed_count = 0;
     int total_tests = tests.size();
 
