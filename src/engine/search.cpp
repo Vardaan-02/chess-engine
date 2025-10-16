@@ -17,15 +17,9 @@ chess::Move Search::start_search(Board& board, int depth)
     chess::Move bestMove{};
     // int legal_moves_found = 0;
 
-<<<<<<< HEAD
-    int64_t alpha = NEG_INFINITY_EVAL; 
-    int64_t beta = -NEG_INFINITY_EVAL; 
-    // std::cout << moveList.size() << '\n';
-=======
     int alpha = CHECKMATE_EVAL-1; 
     int beta = -CHECKMATE_EVAL+1; 
 
->>>>>>> fbd576e (minor changes)
     for(auto& move : moveList)
     {
         
