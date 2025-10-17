@@ -38,8 +38,8 @@ chess::Move parse_move(Board& board, const std::string& move_string) {
 
 // Function to run the search in a separate thread
 // This version correctly formats the output string for promotion moves.
-void start_search_thread(Board board, Search* search_agent, int depth) {
-    chess::Move best_move = search_agent->start_search(board, depth);
+void start_search_thread(Board board, Search* search_agent, int depth, int wtime, int btime, int winc, int binc) {
+    chess::Move best_move = search_agent->start_search(board, depth, wtime, btime, winc, binc);
 
     std::string move_str = util::move_to_string(best_move);
 
@@ -121,17 +121,32 @@ int main() {
                 search_thread.join();
             }
             
-            int depth = 8; // Default search depth
+            int wtime = -1, btime = -1, winc = 0, binc = 0;
+            int depth = 64; //Very high default depth
             std::string go_param;
+            
             while(iss >> go_param) {
                 if (go_param == "depth") {
                     iss >> depth;
+                } 
+                else if (go_param == "wtime") {
+                    iss >> wtime;
+                } 
+                else if (go_param == "btime") {
+                    iss >> btime;
+                } 
+                else if (go_param == "winc") {
+                    iss >> winc;
+                } 
+                else if (go_param == "binc") {
+                    iss >> binc;
                 }
             }
             
             search_agent.stopSearch.store(false);
             // Launch the search in a new thread
-            search_thread = std::thread(start_search_thread, board, &search_agent, depth);
+            // search_thread = std::thread(start_search_thread, board, &search_agent, depth);
+            search_thread = std::thread(start_search_thread, board, &search_agent, depth, wtime, btime, winc, binc);
 
         } else if (token == "stop") {
             search_agent.stopSearch.store(true);

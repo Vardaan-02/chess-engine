@@ -3,12 +3,14 @@
 #include "engine/move_orderer.h"
 
 
-// Does not check for 50 move rule, 3 repetitions yet
 int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta)
 {
-    //checking every 2047 nodes if the stop search has been set to true
+    if ((nodes_searched & 2047) == 0 && std::chrono::steady_clock::now() >= searchEndTime) {
+            stopSearch.store(true);
+        }
+
     if ((nodes_searched & 2047) == 0 && stopSearch.load()) {
-        return DRAW_EVAL; // Return a neutral score if search is aborted
+        return DRAW_EVAL;
     }
 
     if(ply > 0)
@@ -27,6 +29,10 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
         }
     }
 
+    if (board.checks) {
+        depth++;
+    }
+
     TTEntry entry{};
     int64_t og_alpha = alpha;
 
@@ -41,11 +47,28 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
         if(alpha >= beta) return entry.score;
     }
 
+    // Conditions to apply Null move pruning:
+    // 1. Not in check.
+    // 2. Not in the first few plies of the game.
+    // 3. The current search depth is deep enough (e.g., > 2).
+    // 4. The side to move has enough non-pawn material (to avoid zugzwang issues).
+    if (!board.checks && ply > 0 && depth > 2 && (board.white_to_move ? board.material_white > 3000 : board.material_black > 3000)) {
+        // The reduction factor 'R' is typically 2 or 3.
+        int R = 3;
+
+        board.make_move({});
+        int64_t null_score = -negamax(board, depth - 1 - R, ply + 1, -beta, -beta + 1);
+        board.unmake_move({}); 
+
+        //even after making a null move the opp couldnt make our score < Beta so its too good lets prune
+        if (null_score >= beta) {
+            return beta;
+        }
+    }
+
     nodes_searched++;    
-    // Base case: If we've reached the desired depth, switch to quiescence search.
     if (depth == 0) {
         return search_captures_only(board, ply, alpha, beta);
-        // return evaluate(board);
     }
     
     MoveOrderer orderer(board, ply, *this, false);
@@ -54,7 +77,6 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
 
     int legal_moves_found = 0;
     
-    // Main search loop
     while(!(move = orderer.get_next_move()).is_null()){
         if(stopSearch.load()) return DRAW_EVAL;
 
@@ -64,31 +86,47 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
             continue;
         }
         
-        // If we get here, we've found at least one legal move.
         legal_moves_found++;
 
-        int64_t score = -negamax(board, depth - 1, ply+1, -beta, -alpha);
+        // int64_t score = -negamax(board, depth - 1, ply+1, -beta, -alpha);
+        int64_t score;
+
+        if (legal_moves_found > 5 && depth > 4 && move.flags() == chess::FLAG_QUIET) {
+            // After the first few moves, if the move is quiet and depth is sufficient...
+            int reduction = std::min(4, 1 + depth / 5);
+            // More complex reductions can depend on depth and move number
+            // Search with a reduced depth
+            score = -negamax(board, depth - 1 - reduction, ply + 1, -alpha - 1, -alpha);
+        } 
+        else {
+            // Ensure the full search is done for the first few moves or if a re-search is needed
+            score = -negamax(board, depth - 1, ply + 1, -beta, -alpha);
+        }
+        // If the reduced search was better than expected, it might be a good move. Re-search at full depth.
+        if (score > alpha) {
+            score = -negamax(board, depth - 1, ply + 1, -beta, -alpha);
+        }
+
         board.unmake_move(move);
 
         if (score >= beta) {
             if(move.flags() != chess::FLAG_CAPTURE && move.flags() != chess::FLAG_CAPTURE_PROMO && move.flags() != chess::FLAG_EP && move.flags() != chess::FLAG_PROMO) 
             {
                 update_killers(ply, move);
-                update_history(board, move, depth); //need to implement some sort of ageing mechanism so that the quiet moves dont just take over
+                // update_history(board, move, depth);
             }
 
             entry = { board.zobrist_key, (uint8_t)depth, score, TTEntry::LOWER_BOUND, move };
             TT.store(entry);
 
-            return beta; // Beta-cutoff, a huge performance gain.
+            return beta; 
         }
         if (score > alpha) {
             best_move = move;
-            alpha = score; // We've found a new best move.
+            alpha = score; 
         }
     }
     
-    // After checking all moves, if we found no legal ones, it's mate or stalemate.
     if (legal_moves_found == 0) {
         // checkmate + ply to favor checkmates found with least amount of moves
         entry = { board.zobrist_key, (int8_t)MAX_PLY, board.checks ? CHECKMATE_EVAL + ply : DRAW_EVAL, TTEntry::EXACT, {} };

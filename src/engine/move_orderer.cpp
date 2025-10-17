@@ -72,3 +72,4 @@ chess::Move MoveOrderer::get_next_move() {
     }
     return {}; // Return a null move when done
 }
+

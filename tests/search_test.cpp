@@ -1,4 +1,4 @@
-// Compile using: g++ -std=c++17 -I../include/chess -I../include -I../include/utils -o search_test.out search_test.cpp ../src/chess/*.cpp ../src/chess/movegen/*.cpp ../src/utils/threadpool.cpp ../src/engine/search.cpp ../src/engine/move_orderer.cpp ../src/engine/evaluate.cpp ../src/engine/search/*.cpp -O3 -march=native -flto -funroll-loops
+// Compile using: g++ -std=c++17 -I../include/chess -I../include -I../include/utils -o search_test.out search_test.cpp ../src/chess/*.cpp ../src/chess/movegen/*.cpp ../src/utils/threadpool.cpp ../src/engine/*.cpp ../src/engine/search/*.cpp -O3 -march=native -flto -funroll-loops
 
 #include <iostream>
 #include <vector>
@@ -19,7 +19,8 @@ void run_test(Search& search, const TestCase& tc) {
     b.set_fen(fen_str);
 
     auto start = std::chrono::high_resolution_clock::now();
-    chess::Move bm = search.start_search(b, tc.depth);
+    //Have to give time left for white, black and increments in ms, the engine takes time/25th or 15 seconds whichever is smaller
+    chess::Move bm = search.start_search(b, tc.depth, 10*60*1000,10*60*1000,1000,1000);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string found_move_str = util::move_to_string(bm);
@@ -57,7 +58,7 @@ int main() {
         // {"8/5ppp/1P5k/8/8/6P1/5PKP/8 w - - 0 1", 7, "b6b7"},
 
         //rook takes bishop kyu ho raha ;-;
-        {"6k1/p4pp1/8/1p2P2P/4R3/2Br3P/1Pr2PK1/8 b - - 0 34", 9, "a7a5"},
+        {"6k1/p4pp1/8/1p2P2P/4R3/2Br3P/1Pr2PK1/8 b - - 0 34", 60, "a7a5"},
 
         //Resigns due to illegal move
         // {"8/7p/p5p1/5k2/3P1p2/2N1p3/1p6/7K b - - 1 56",1,"b2b1"}

@@ -2,6 +2,7 @@
 
 #include <atomic>
 #include <cstdint>
+#include <chrono>
 #include "chess/board.h"
 #include "chess/types.h"
 #include "chess/movegen.h"
@@ -28,7 +29,7 @@ public:
      * @param depth The fixed depth to search to.
      * @return The best move found for the current position.
      */
-    chess::Move start_search(Board& board, int depth);
+    chess::Move start_search(Board& board, int depth, int wtime, int btime, int winc, int binc);
 
     // Publicly accessible search statistics
     uint64_t nodes_searched;
@@ -39,6 +40,7 @@ public:
     TranspositionTable TT;
     std::atomic<bool> stopSearch;
     ThreadPool pool;
+    std::chrono::steady_clock::time_point searchEndTime; 
 
 private:
     /**
