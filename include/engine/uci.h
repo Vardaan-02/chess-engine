@@ -1,24 +1,18 @@
-// #pragma once
+#include <iostream>
+#include <string>
+#include <sstream>
+#include <vector>
+#include <thread>
+#include <fstream>
+#include "chess/board.h"
+#include "engine/search.h"
+#include "chess/movegen.h"
+#include "chess/util.h"
 
-// #include <iostream>
-// #include <string>
-// #include <vector>
-// #include <sstream>
-// #include <thread>
+class OpeningBook;
 
-// #include "chess/movegen.h"
-// #include "engine/search.h"
+chess::Move parse_move(Board& board, const std::string& move_string);
 
-// /**
-//  * @file uci.h
-//  * @brief Declares the main loop for the Universal Chess Interface (UCI).
-//  *
-//  * This module is the "mouth and ears" of the engine, responsible for
-//  * communicating with a GUI or command line.
-//  */
+void start_search_thread(Board board, Search* search_agent, int depth, int wtime, int btime, int winc, int binc);
 
-// namespace uci {
-//     // The main entry point for the UCI protocol.
-//     // This function will start a loop to listen for and process commands.
-//     void loop();
-// }
+void uci(Board &board, Search& search_agent, std::thread& search_thread, OpeningBook& book);

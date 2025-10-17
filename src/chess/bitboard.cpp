@@ -451,7 +451,6 @@ void generate_between_and_ray_tables() noexcept {
 // MAIN INITIALIZATION FUNCTION
 //-----------------------------------------------------------------------------
 void init() {
-    Zobrist::init();
     init_leaper_attacks();
     init_magics();
     generate_between_and_ray_tables();

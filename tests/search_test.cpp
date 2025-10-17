@@ -58,10 +58,13 @@ int main() {
         // {"8/5ppp/1P5k/8/8/6P1/5PKP/8 w - - 0 1", 7, "b6b7"},
 
         //rook takes bishop kyu ho raha ;-;
-        {"6k1/p4pp1/8/1p2P2P/4R3/2Br3P/1Pr2PK1/8 b - - 0 34", 60, "a7a5"},
+        // {"6k1/p4pp1/8/1p2P2P/4R3/2Br3P/1Pr2PK1/8 b - - 0 34", 60, "a7a5"},
 
         //Resigns due to illegal move
         // {"8/7p/p5p1/5k2/3P1p2/2N1p3/1p6/7K b - - 1 56",1,"b2b1"}
+
+        //starting position
+        {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 8, "e2e4"}
     };
 
     Search search_agent(128);

@@ -30,7 +30,7 @@ chess::Move Search::start_search(Board& board, int depth, int wtime, int btime, 
         int increment = board.white_to_move ? winc : binc;
         
         //Use minimum of 15 secs or 1/25th of the remaining time + inc
-        time_for_move_ms = std::min(15000, (remaining_time / 25) + increment);
+        time_for_move_ms = std::min(5000, (remaining_time / 25) + increment);
 
         // Ensure we don't use more time than we have, with a small buffer.
         time_for_move_ms = std::min(time_for_move_ms, remaining_time - 50);
@@ -45,7 +45,7 @@ chess::Move Search::start_search(Board& board, int depth, int wtime, int btime, 
     chess::Move best_move_overall{};
     int64_t last_score = 0;
 
-    for (int i = 1; i <= depth; ++i) {
+    for (int i = 1; i <= 8; ++i) {
 
         if (std::chrono::steady_clock::now() >= searchEndTime) {
             break;
