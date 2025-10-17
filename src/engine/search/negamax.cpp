@@ -6,6 +6,27 @@
 // Does not check for 50 move rule, 3 repetitions yet
 int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta)
 {
+    //checking every 2047 nodes if the stop search has been set to true
+    if ((nodes_searched & 2047) == 0 && stopSearch.load()) {
+        return DRAW_EVAL; // Return a neutral score if search is aborted
+    }
+
+    if(ply > 0)
+    {
+        if(board.halfmove_clock >= 100) return DRAW_EVAL;
+
+        // the position can only repeat if there were no pawn pushes or captures
+        // half move clock records that number of moves (so we dont have to search the entire undo stack)
+        int end_index = board.undo_stack.size(); 
+        int rep_count{};
+        int start_index = std::max(0, end_index - (int)(board.halfmove_clock));
+        for(; start_index < end_index; ++start_index)
+        {
+            if(board.zobrist_key == board.undo_stack[start_index].zobrist_before) ++rep_count;
+            if(rep_count >= 2) return DRAW_EVAL; //2 times already and this is the third time
+        }
+    }
+
     TTEntry entry{};
     int64_t og_alpha = alpha;
 
@@ -35,6 +56,8 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
     
     // Main search loop
     while(!(move = orderer.get_next_move()).is_null()){
+        if(stopSearch.load()) return DRAW_EVAL;
+
         board.make_move(move);
         if(!board.is_position_legal()){
             board.unmake_move(move);

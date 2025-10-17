@@ -1,4 +1,4 @@
-#include "movegen.h"
+#include "chess/movegen.h"
 
 void MoveGen::generate_knight_moves(const Board& B, std::vector<chess::Move>& moveList, bool capturesOnly){
     const chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;

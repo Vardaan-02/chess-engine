@@ -1,4 +1,4 @@
-#include "board.h" // Assuming this contains your class and necessary definitions
+#include "chess/board.h" // Assuming this contains your class and necessary definitions
 
 /**
  * @brief A highly optimized function to calculate all pins, checks, and check masks.

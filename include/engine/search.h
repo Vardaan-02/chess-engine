@@ -2,7 +2,7 @@
 
 #include <atomic>
 #include <cstdint>
-#include "board.h"
+#include "chess/board.h"
 #include "chess/types.h"
 #include "chess/movegen.h"
 #include "transposition.h"

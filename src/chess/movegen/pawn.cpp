@@ -1,4 +1,4 @@
-#include "movegen.h"
+#include "chess/movegen.h"
 
 void add_pawn_promotion_moves(const Board& B, const chess::Square currSq, const chess::Square dstSq, const chess::MoveFlag flags, std::vector<chess::Move>& moveList)
 {

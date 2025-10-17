@@ -1,4 +1,4 @@
-#include "movegen.h"
+#include "chess/movegen.h"
 
 void MoveGen::generate_orthogonal_sliders_moves(const Board& B, std::vector<chess::Move>& moveList, bool capturesOnly){
     chess::Color color = B.white_to_move ? chess::WHITE : chess::BLACK;

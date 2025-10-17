@@ -1,6 +1,6 @@
-#include "bitboard.h"
-#include "types.h"
-#include "zobrist.h"
+#include "chess/bitboard.h"
+#include "chess/types.h"
+#include "chess/zobrist.h"
 #include <iomanip>
 
 /**

@@ -1,7 +1,7 @@
 #pragma once
-#include "board.h"
-#include "util.h"
-#include "types.h"
+#include "chess/board.h"
+#include "chess/util.h"
+#include "chess/types.h"
 #include <array>
 
 namespace eval {

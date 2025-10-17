@@ -1,5 +1,5 @@
-#pragma once
+// #pragma once
 
-namespace Config {
-    // Engine constants & config
-}
+// namespace Config {
+//     // Engine constants & config
+// }

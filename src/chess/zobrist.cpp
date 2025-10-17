@@ -1,5 +1,5 @@
-#include "zobrist.h"
-#include "board.h"
+#include "chess/zobrist.h"
+#include "chess/board.h"
 
 uint64_t Zobrist::piecesArray[16][64];
 uint64_t Zobrist::castlingRights[16];

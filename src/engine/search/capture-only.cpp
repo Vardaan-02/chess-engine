@@ -5,6 +5,8 @@
 
 int64_t Search::search_captures_only(Board& board, int ply, int64_t alpha, int64_t beta)
 {   
+    if(stopSearch.load()) return DRAW_EVAL;
+
     TTEntry entry{};
     int64_t og_alpha = alpha;
 

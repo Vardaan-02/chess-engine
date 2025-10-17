@@ -1,4 +1,4 @@
-#include "movegen.h"
+#include "chess/movegen.h"
 
 void MoveGen::init(const Board& B, std::vector<chess::Move>& moveList, bool capturesOnly){
     if(B.double_check){

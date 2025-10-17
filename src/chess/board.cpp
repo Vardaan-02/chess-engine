@@ -1,6 +1,6 @@
-#include "board.h"
-#include "bitboard.h"
-#include "zobrist.h"
+#include "chess/board.h"
+#include "chess/bitboard.h"
+#include "chess/zobrist.h"
 #include <cstring>
 #include <sstream>
 #include <stdexcept>
