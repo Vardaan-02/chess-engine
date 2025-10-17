@@ -69,6 +69,7 @@ chess::Move Search::start_search(Board& board, int depth) {
             for (auto& [future, move] : futures) {
                 if (stopSearch.load()) break;
                 int64_t s = -future.get();
+
                 if (s > current_alpha) {
                     current_alpha = s;
                     best_move_this_iter = move;

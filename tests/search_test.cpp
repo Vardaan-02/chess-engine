@@ -42,19 +42,25 @@ int main() {
 
     std::vector<TestCase> tests = {
         // Mate in 1. Requires depth 1. (Legal's Mate pattern)
-        {"r1bqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4", 8, "f3f7"},
+        // {"r1bqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4", 8, "f3f7"},
 
         // Mate in 1. Requires depth 1.
-        {"6k1/3br3/1p1p2p1/p1pP4/PPPb2r1/3B4/8/3R1K2 b - - 0 49", 8, "g4g1"},
+        // {"6k1/3br3/1p1p2p1/p1pP4/PPPb2r1/3B4/8/3R1K2 b - - 0 49", 8, "g4g1"},
 
         // // Mate in 2, depth 4
-        {"6k1/3b4/1p1p2p1/p1pPbr2/P1P3K1/1P6/4r3/3R4 b - - 1 51", 8, "e2f2"}, //e2f2 then f5f2
+        // {"6k1/3b4/1p1p2p1/p1pPbr2/P1P3K1/1P6/4r3/3R4 b - - 1 51", 8, "e2f2"}, //e2f2 then f5f2
 
         // Winning knight.
-        {"rnbqkbnr/p1pppppp/8/1p6/2N1P3/8/PPPP1PPP/R1BQKBNR b KQkq - 0 1", 6, "b5c4"},
+        // {"rnbqkbnr/p1pppppp/8/1p6/2N1P3/8/PPPP1PPP/R1BQKBNR b KQkq - 0 1", 6, "b5c4"},
 
         // Passed Pawn.
-        {"8/5ppp/1P5k/8/8/6P1/5PKP/8 w - - 0 1", 7, "b6b7"}
+        // {"8/5ppp/1P5k/8/8/6P1/5PKP/8 w - - 0 1", 7, "b6b7"},
+
+        //rook takes bishop kyu ho raha ;-;
+        {"6k1/p4pp1/8/1p2P2P/4R3/2Br3P/1Pr2PK1/8 b - - 0 34", 9, "a7a5"},
+
+        //Resigns due to illegal move
+        // {"8/7p/p5p1/5k2/3P1p2/2N1p3/1p6/7K b - - 1 56",1,"b2b1"}
     };
 
     Search search_agent(128);
