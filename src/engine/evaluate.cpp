@@ -66,6 +66,34 @@ eval::TaperedScore king_safety_score(const Board& b, chess::Color color) {
 
     return safety_score;
 }
+
+eval::TaperedScore king_activity_score(const Board& b, chess::Color color) {
+    eval::TaperedScore activity_score = {0, 0};
+    const chess::Square king_square = (color == chess::WHITE) ? b.white_king_sq : b.black_king_sq;
+    const chess::Square opponent_king_square = (color == chess::WHITE) ? b.black_king_sq : b.white_king_sq;
+
+    const int king_rank = util::get_rank(king_square);
+    const int king_file = util::get_file(king_square);
+    const int opponent_king_rank = util::get_rank(opponent_king_square);
+    const int opponent_king_file = util::get_file(opponent_king_square);
+
+    const int king_dist_to_center_rank = std::max(3 - king_rank, king_rank - 4);
+    const int king_dist_to_center_file = std::max(3 - king_file, king_file - 4);
+    const int king_dist_from_center = king_dist_to_center_file + king_dist_to_center_rank;
+    
+    // Distance of King from Center
+    activity_score.eg += king_dist_from_center * eval::eval_data.opponent_king_distance_opponent_king_penalty.eg;
+
+    const int dist_between_kings_rank = std::abs(opponent_king_rank - king_rank);
+    const int dist_between_kings_file = std::abs(opponent_king_file - king_file);
+    const int distance_between_kings = dist_between_kings_rank + dist_between_kings_file;
+
+    // Distance between Kings
+    activity_score.eg += distance_between_kings * eval::eval_data.opponent_king_distance_opponent_king_penalty.eg;
+
+    return activity_score;
+}
+
 void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
     
     // 1. White Pawns
@@ -164,6 +192,12 @@ void knight_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_p
         eg_score += eval::eval_data.psts[chess::KNIGHT][sq].eg;
 
         game_phase += eval::eval_data.phase_values[chess::KNIGHT]; 
+
+        uint64_t knight_outpost_square = chess::PawnAttacks[chess::BLACK][sq];
+        if (knight_outpost_square & b.bitboard[chess::WP]){
+            mg_score += eval::eval_data.knight_outpost_bonus.mg;
+            eg_score += eval::eval_data.knight_outpost_bonus.eg;
+        }
     }
     
     // 2. Black Knights
@@ -178,6 +212,12 @@ void knight_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_p
         eg_score -= eval::eval_data.psts[chess::KNIGHT][pst_sq].eg;
 
         game_phase += eval::eval_data.phase_values[chess::KNIGHT]; 
+
+        uint64_t knight_outpost_square = chess::PawnAttacks[chess::WHITE][sq];
+        if (knight_outpost_square & b.bitboard[chess::BP]){
+            mg_score -= eval::eval_data.knight_outpost_bonus.mg;
+            eg_score -= eval::eval_data.knight_outpost_bonus.eg;
+        }
     }
 }
 
@@ -226,6 +266,10 @@ void bishop_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_p
 void rook_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_phase) {
     // 1. White Rooks
     uint64_t white_rooks = b.bitboard[chess::WR];
+    int rank_of_first_rook = -1;
+    int rank_of_second_rook = -1;
+    int file_of_first_rook = -1;
+    int file_of_second_rook = -1;
     while (white_rooks) {
         chess::Square sq = util::pop_lsb(white_rooks);
         mg_score += eval::eval_data.material_values[chess::ROOK].mg;
@@ -235,10 +279,44 @@ void rook_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_pha
         eg_score += eval::eval_data.psts[chess::ROOK][sq].eg;
 
         game_phase += eval::eval_data.phase_values[chess::ROOK]; 
+
+        int rook_rank = util::get_rank(sq);
+        if (rook_rank == 6){
+            mg_score += eval::eval_data.rook_on_7th_bonus.mg;
+            eg_score += eval::eval_data.rook_on_7th_bonus.eg;
+        }
+
+        int rook_file = util::get_file(sq);
+        if ((chess::files[rook_file] & (~b.white_occupied)) == chess::files[rook_file]){
+            mg_score += eval::eval_data.rook_on_open_file_bonus.mg;
+            eg_score += eval::eval_data.rook_on_open_file_bonus.eg;
+        }
+
+        if (rank_of_first_rook != -1){
+            rank_of_second_rook = rook_rank;
+            file_of_second_rook = rook_file;
+        }
+        else {
+            rank_of_first_rook = rook_rank;
+            file_of_first_rook = rook_file;
+        }
+    }
+
+    if (rank_of_first_rook == rank_of_second_rook){
+        mg_score += eval::eval_data.rook_connected_bonus.mg;
+        eg_score += eval::eval_data.rook_connected_bonus.eg;
+    }
+    else if (file_of_first_rook == file_of_second_rook){
+        mg_score += eval::eval_data.rook_connected_bonus.mg;
+        eg_score += eval::eval_data.rook_connected_bonus.eg;
     }
     
     // 2. Black Rooks
     uint64_t black_rooks = b.bitboard[chess::BR];
+    rank_of_first_rook = -1;
+    rank_of_second_rook = -1;
+    file_of_first_rook = -1;
+    file_of_second_rook = -1;
     while (black_rooks) {
         chess::Square sq = util::pop_lsb(black_rooks);
         mg_score -= eval::eval_data.material_values[chess::ROOK].mg;
@@ -249,6 +327,27 @@ void rook_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_pha
         eg_score -= eval::eval_data.psts[chess::ROOK][pst_sq].eg;
 
         game_phase += eval::eval_data.phase_values[chess::ROOK]; 
+
+        int rook_rank = util::get_rank(sq);
+        if (rook_rank == 1){
+            mg_score -= eval::eval_data.rook_on_7th_bonus.mg;
+            eg_score -= eval::eval_data.rook_on_7th_bonus.eg;
+        }
+
+        int rook_file = util::get_file(sq);
+        if ((chess::files[rook_file] & (~b.black_occupied)) == chess::files[rook_file]){
+            mg_score -= eval::eval_data.rook_on_open_file_bonus.mg;
+            eg_score -= eval::eval_data.rook_on_open_file_bonus.eg;
+        }
+    }
+
+    if (rank_of_first_rook == rank_of_second_rook){
+        mg_score -= eval::eval_data.rook_connected_bonus.mg;
+        eg_score -= eval::eval_data.rook_connected_bonus.eg;
+    }
+    else if (file_of_first_rook == file_of_second_rook){
+        mg_score -= eval::eval_data.rook_connected_bonus.mg;
+        eg_score -= eval::eval_data.rook_connected_bonus.eg;
     }
 }
 
@@ -306,6 +405,12 @@ void king_evaluation(const Board& b, int& mg_score, int& eg_score) {
     eval::TaperedScore black_king_safety = king_safety_score(b, chess::Color::BLACK);
     mg_score += white_king_safety.mg - black_king_safety.mg;
     eg_score += white_king_safety.eg - black_king_safety.eg;
+
+    // King Safty
+    eval::TaperedScore white_king_activity = king_activity_score(b, chess::Color::WHITE);
+    eval::TaperedScore black_king_activity = king_activity_score(b, chess::Color::BLACK);
+    mg_score += white_king_activity.mg - black_king_activity.mg;
+    eg_score += white_king_activity.eg - black_king_activity.eg;
 }
 
 int Search::evaluate(const Board& b) {

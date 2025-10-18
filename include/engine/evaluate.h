@@ -35,10 +35,24 @@ struct EvalData {
 
     // Specific bonuses and penalties
     TaperedScore bishop_pair_bonus;
+    TaperedScore rook_on_open_file_bonus;
+    TaperedScore rook_on_7th_bonus;
+    TaperedScore knight_outpost_bonus;
+    TaperedScore bishop_center_control;
     TaperedScore connected_pawn_bonus;
     TaperedScore doubled_pawn_penalty;
     TaperedScore isolated_pawn_penalty;
+    TaperedScore backward_pawn_penalty;
     std::array<TaperedScore, 8> passed_pawn_bonus; // This might be an array per rank later
+    TaperedScore passed_pawn_supported_bonus;
+    TaperedScore passed_pawn_blocked_penalty;
+    TaperedScore king_distance_from_center_penalty;
+    TaperedScore opponent_king_distance_from_center_bonus;
+    TaperedScore king_near_to_pawns_penalty;
+    TaperedScore opponent_king_distance_opponent_king_penalty;
+    TaperedScore space_bonus;          // More central squares controlled = higher eval
+    TaperedScore pawn_majority_bonus;  // On one wing, potential for passed pawns
+    TaperedScore rook_connected_bonus; // Rooks on same rank/file
 
     // King Safety Parameters
 
@@ -77,11 +91,11 @@ constexpr EvalData eval_data = {
     // 1. Material Values
     .material_values = {{
         {0, 0},   // NO_PIECE_TYPE
-        {100, 100}, // PAWN
-        {320, 320}, // KNIGHT
-        {330, 330}, // BISHOP
-        {500, 500}, // ROOK
-        {900, 900}, // QUEEN
+        {100, 150},   // PAWN
+        {320, 280},   // KNIGHT
+        {330, 380},   // BISHOP
+        {500, 650},   // ROOK
+        {900, 1000},  // QUEEN
         {0, 0}      // KING (material value is infinite/not counted)
     }},
 
@@ -167,20 +181,44 @@ constexpr EvalData eval_data = {
     }},
 
     // 3. Bonuses and Penalties
-    .bishop_pair_bonus     = {30, 50},
-    .connected_pawn_bonus    = {20, 30},
-    .doubled_pawn_penalty  = {-25, -35},
-    .isolated_pawn_penalty = {-15, -25},
-    .passed_pawn_bonus     = {{
-    {   0,   0 },  // Rank 1 (impossible)
-    {  20,  50 },  // Rank 2 (starting rank)
-    {  35,  70 },  // Rank 3
-    {  45, 100 },  // Rank 4
-    {  65, 150 },  // Rank 5 (major threat)
-    { 165, 245 },  // Rank 6 (very dangerous)
-    { 235, 425 },  // Rank 7 (unstoppable)
-    {   0,   0 }   // Rank 8 (promotion)},
+    // --- STRUCTURAL & PIECE SYNERGY BONUSES ---
+    .bishop_pair_bonus     = {35, 60},     // Midgame: strong on open diagonals; Endgame: more mobility, pair dominates
+    .rook_on_open_file_bonus = {25, 40},   // Rooks thrive on open/semi-open files
+    .rook_on_7th_bonus       = {40, 60},   // Rook on 7th rank dominates enemy pawns
+    .knight_outpost_bonus    = {30, 45},   // Knight anchored on a safe outpost
+    .bishop_center_control   = {15, 25},   // Centralized bishop, good diagonals
+
+    // --- PAWN STRUCTURE ---
+    .connected_pawn_bonus    = {25, 35},   // Connected pawns reinforce each other
+    .doubled_pawn_penalty    = {-30, -45}, // Structural liability, especially later
+    .isolated_pawn_penalty   = {-20, -35}, // Easier to attack in endgame
+    .backward_pawn_penalty   = {-15, -25}, // Lags behind, tough to defend
+
+    // --- PASSED PAWNS ---
+    .passed_pawn_bonus = {{
+        {   0,   0 },  // Rank 1 (impossible)
+        {  15,  40 },  // Rank 2
+        {  30,  60 },  // Rank 3
+        {  50,  90 },  // Rank 4
+        {  90, 150 },  // Rank 5
+        { 160, 260 },  // Rank 6
+        { 250, 400 },  // Rank 7
+        {   0,   0 }   // Rank 8 (promotion)
     }},
+    .passed_pawn_supported_bonus = {25, 45}, // Extra if protected by own pawn
+    .passed_pawn_blocked_penalty = {-40, -25}, // Penalize blocked passed pawns
+
+    // --- KING ACTIVITY ---
+    .king_distance_from_center_penalty = {0, 3},
+    .opponent_king_distance_from_center_bonus = {0, 6},
+    .king_near_to_pawns_penalty = {0, 3},
+    .opponent_king_distance_opponent_king_penalty = {0, 15},
+
+    // --- MISC STRATEGIC FACTORS ---
+
+    .space_bonus         = {10, 20},     // More central squares controlled = higher eval
+    .pawn_majority_bonus = {15, 30},     // On one wing, potential for passed pawns
+    .rook_connected_bonus = {40, 30},    // Rooks on same rank/file
 
     // 4. King Safety Values
     .pawn_shield_penalty = {{
