@@ -20,7 +20,7 @@ void run_test(Search& search, const TestCase& tc) {
 
     auto start = std::chrono::high_resolution_clock::now();
     //Have to give time left for white, black and increments in ms, the engine takes time/25th or 15 seconds whichever is smaller
-    chess::Move bm = search.start_search(b, tc.depth, 10*60*1000,10*60*1000,1000,1000);
+    chess::Move bm = search.start_search(b, tc.depth, 10, 10*60*1000,10*60*1000,1000,1000);
     auto end = std::chrono::high_resolution_clock::now();
 
     std::string found_move_str = util::move_to_string(bm);

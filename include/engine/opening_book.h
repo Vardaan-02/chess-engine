@@ -1,88 +1,155 @@
-#pragma once
+#ifndef OPENING_BOOK_H
+#define OPENING_BOOK_H
 
 #include <iostream>
-#include <string>
 #include <vector>
-#include <optional>
-#include <random>
-#include <unordered_map>
+#include <string>
 #include <fstream>
-#include "chess/board.h"
-#include "chess/zobrist.h"
-#include "uci.h" // We need parse_move from here
+#include <cstdint>
+#include <optional>
+#include <algorithm> // Required for std::sort
+#include <random>
 
-#include "json.hpp"
-using json = nlohmann::json;
+// Use built-in functions for byte swapping, which are highly optimized
+#if defined(__GNUC__) || defined(__clang__)
+    #define BSWAP16(x) __builtin_bswap16(x)
+    #define BSWAP32(x) __builtin_bswap32(x)
+    #define BSWAP64(x) __builtin_bswap64(x)
+#elif defined(_MSC_VER)
+    #include <cstdlib>
+    #define BSWAP16(x) _byteswap_ushort(x)
+    #define BSWAP32(x) _byteswap_ulong(x)
+    #define BSWAP64(x) _byteswap_uint64(x)
+#else
+    // A simple fallback for other compilers
+    inline uint16_t BSWAP16(uint16_t x) { return (x >> 8) | (x << 8); }
+    inline uint32_t BSWAP32(uint32_t x) { return (BSWAP16(x >> 16)) | (BSWAP16(x) << 16); }
+    inline uint64_t BSWAP64(uint64_t x) { return ((uint64_t)BSWAP32(x >> 32)) | ((uint64_t)BSWAP32(x) << 32); }
+#endif
+
+
+// Each entry in a Polyglot book is 16 bytes.
+struct BookEntry {
+    uint64_t key;
+    uint16_t move;
+    uint16_t weight;
+    uint32_t learn;
+} __attribute__((packed));
+
 
 class OpeningBook {
-public:
-    // This function will pre-process the JSON file and build the map.
-    void load_from_json(const std::string& filepath) {
-        Zobrist::init();
-        try {
-            
-            std::ifstream f(filepath);
-            if (!f.is_open()) {
-                std::cout << "info string Could not open opening book file: " << filepath << std::endl;
-                return;
+private:
+    std::vector<BookEntry> entries;
+
+    static std::string polyglot_move_to_uci(uint16_t move) {
+        int from_sq = (move >> 6) & 63;
+        int to_sq = move & 63;
+        int promo_piece = (move >> 12) & 7;
+
+        std::string uci_move;
+        uci_move += (char)('a' + (from_sq % 8));
+        uci_move += (char)('1' + (from_sq / 8));
+        uci_move += (char)('a' + (to_sq % 8));
+        uci_move += (char)('1' + (to_sq / 8));
+
+        if (promo_piece != 0) {
+            switch (promo_piece) {
+                case 1: uci_move += 'n'; break;
+                case 2: uci_move += 'b'; break;
+                case 3: uci_move += 'r'; break;
+                case 4: uci_move += 'q'; break;
             }
-
-            json openings_json = json::parse(f);
-            Board board; // A temporary board to play through lines
-
-            for (const auto& line : openings_json) {
-                std::string starting_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-                board.set_fen(starting_fen); // Reset board for each opening line
-                std::vector<std::string> moves = line.get<std::vector<std::string>>();
-
-                for (const std::string& move_str : moves) {
-                    uint64_t current_hash = board.zobrist_key;
-                    chess::Move move = parse_move(board, move_str);
-
-                    if (move.is_null()) {
-                        break; 
-                    }
-                    
-                    // Add this move to the list of possible moves for the current position's hash
-                    // Avoid adding duplicate moves for a given position
-                    bool found = false;
-                    for(const auto& m : book[current_hash]){
-                        if (m == move_str) {
-                            found = true;
-                            break;
-                        }
-                    }
-                    if(!found) {
-                        book[current_hash].push_back(move_str);
-                    }
-
-                    board.make_move(move);
-                }
-            }
-            std::cout << "info string Book loaded. " << book.size() << " unique positions." << std::endl;
-        } catch (const std::exception& e) {
-            std::cerr << "info string Error loading opening book: " << e.what() << std::endl;
         }
+        return uci_move;
     }
 
-    // The query function now takes the board's current Zobrist hash.
-    std::optional<std::string> getRandomMove(uint64_t current_hash) {
-        auto it = book.find(current_hash);
+public:
+    std::optional<std::string> getRandomMove(uint64_t hash) {
+        std::cout << "info string [Book] Looking up hash: " << hash << std::endl;
 
-        // Check if the position exists in the book
-        if (it == book.end() || it->second.empty()) {
+        auto it = std::lower_bound(entries.begin(), entries.end(), hash,
+            [](const BookEntry& entry, uint64_t key) {
+                return entry.key < key;
+            });
+
+        if (it == entries.end() || it->key != hash) {
+            std::cout << "info string [Book] No entry found for this position." << std::endl;
             return std::nullopt;
         }
 
-        const std::vector<std::string>& possibleMoves = it->second;
+        std::vector<const BookEntry*> move_options;
+        uint32_t total_weight = 0;
+        while (it != entries.end() && it->key == hash) {
+            move_options.push_back(&(*it));
+            total_weight += it->weight;
+            it++;
+        }
 
-        // --- Select a random move from the possibilities ---
-        static thread_local std::mt19937 gen(std::random_device{}());
-        std::uniform_int_distribution<> distrib(0, possibleMoves.size() - 1);
+        if (move_options.empty()) {
+            return std::nullopt;
+        }
 
-        return possibleMoves[distrib(gen)];
+        std::random_device rd;
+        std::mt19937 gen(rd());
+        std::uniform_int_distribution<uint32_t> distrib(1, total_weight);
+        uint32_t random_weight = distrib(gen);
+
+        for (const auto& move_entry : move_options) {
+            if (random_weight <= move_entry->weight) {
+                std::string chosen_move = polyglot_move_to_uci(move_entry->move);
+                std::cout << "info string [Book] Found move: " << chosen_move << std::endl;
+                return chosen_move;
+            }
+            random_weight -= move_entry->weight;
+        }
+        
+        std::string fallback_move = polyglot_move_to_uci(move_options[0]->move);
+        std::cout << "info string [Book] Found move (fallback): " << fallback_move << std::endl;
+        return fallback_move;
     }
 
-    // The book is now a hash map from Zobrist key to a vector of move strings
-    std::unordered_map<uint64_t, std::vector<std::string>> book;
+    friend OpeningBook read_book(const std::string& path);
 };
+
+
+// Reads a Polyglot .bin file from the given path
+inline OpeningBook read_book(const std::string& path) {
+    OpeningBook book;
+    std::ifstream file(path, std::ios::binary | std::ios::ate);
+
+    if (!file.is_open()) {
+        std::cerr << "Error: Could not open opening book file: " << path << std::endl;
+        return book;
+    }
+
+    std::streamsize size = file.tellg();
+    file.seekg(0, std::ios::beg);
+
+    long num_entries = size / sizeof(BookEntry);
+    book.entries.resize(num_entries);
+
+    if (num_entries > 0) {
+        file.read(reinterpret_cast<char*>(book.entries.data()), size);
+    }
+    file.close();
+
+    for (auto& entry : book.entries) {
+        entry.key = BSWAP64(entry.key);
+        entry.move = BSWAP16(entry.move);
+        entry.weight = BSWAP16(entry.weight);
+        entry.learn = BSWAP32(entry.learn);
+    }
+
+    // *** THE FIX ***
+    // Re-sort the entries by key after byte-swapping.
+    std::sort(book.entries.begin(), book.entries.end(), 
+        [](const BookEntry& a, const BookEntry& b) {
+            return a.key < b.key;
+    });
+
+    std::cout << "info string Book loaded: " << path << " with " << num_entries << " entries." << std::endl;
+
+    return book;
+}
+
+#endif // OPENING_BOOK_H

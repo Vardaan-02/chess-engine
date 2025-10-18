@@ -92,9 +92,9 @@ constexpr EvalData eval_data = {
     // 1. Material Values
     .material_values = {{
         {0, 0},   // NO_PIECE_TYPE
-        {100, 150},   // PAWN
-        {320, 280},   // KNIGHT
-        {330, 380},   // BISHOP
+        {70, 120},   // PAWN
+        {320, 300},   // KNIGHT
+        {330, 360},   // BISHOP
         {500, 650},   // ROOK
         {900, 1000},  // QUEEN
         {0, 0}      // KING (material value is infinite/not counted)

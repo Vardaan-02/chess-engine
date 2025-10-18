@@ -1,5 +1,6 @@
 #include "engine/uci.h"
 #include "engine/opening_book.h"
+#include "chess/zobrist.h"
 
 // Helper function to find a move in the legal move list that matches a UCI move string
 // This version correctly handles promotion moves.
@@ -50,11 +51,9 @@ void start_search_thread(Board board, Search* search_agent, int depth, int movet
     std::cout << "bestmove " << move_str << std::endl;
 }
 
-void uci(Board &board, Search& search_agent, std::thread& search_thread, OpeningBook& book){
+void uci(Board &board, Search& search_agent, std::thread& search_thread, OpeningBook& white_book, OpeningBook& black_book){
     std::string line;
     while (std::getline(std::cin, line)) {
-        // std::cout << "info " << line << std::endl;
-
         std::istringstream iss(line);
         std::string token;
         iss >> token;
@@ -64,6 +63,7 @@ void uci(Board &board, Search& search_agent, std::thread& search_thread, Opening
             std::cout << "id author Vardaan-Harshit" << std::endl;
             std::cout << "uciok" << std::endl;
         } else if (token == "isready") {
+            Zobrist::init_zobrist_keys(); 
             chess::init(); // Initialize bitboards and other pre-computed data
             std::cout << "readyok" << std::endl;
         } else if (token == "ucinewgame") {
@@ -104,13 +104,15 @@ void uci(Board &board, Search& search_agent, std::thread& search_thread, Opening
             }
         } else if (token == "go") {
             uint64_t current_hash = board.zobrist_key; 
-
-            // std::cout << current_hash << std::endl;
-            std::optional<std::string> book_move = book.getRandomMove(current_hash);
-
             
+            // Choose the correct book based on whose turn it is
+            OpeningBook& active_book = (board.white_to_move) ? white_book : black_book;
+            std::optional<std::string> book_move = active_book.getRandomMove(current_hash);
+            
+            std::cout << "Hash : " << current_hash << std::endl;
+
             if (book_move.has_value() && board.fullmove_number < 10) {
-                std::cout << *book_move << std::endl;
+                std::cout << "BOOKMOVE \n";
                 std::cout << "bestmove " << *book_move << std::endl;
             } else {
                 if (search_thread.joinable()) {

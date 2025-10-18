@@ -1,19 +1,38 @@
 #pragma once
 
 #include <cstdint>
-#include <random>
 
+// Forward-declaration of Board
 class Board;
 
 class Zobrist {
-    public:
-        static void init();
-        static uint64_t calculate_zobrist_hash(const Board& B);
-        //Key for every piece (both colors) on every square
-        static uint64_t piecesArray[16][64];
-        // Each side as 4 possible castling states: none, queenside, kingside, both (so 2^4 possible states for both sides combined)
-        static uint64_t castlingRights[16];
-        static uint64_t enPassantKey[64]; //one for each square, we xor in the target ep square 
-        static uint64_t sideToMove;
+public:
+    // --- PUBLIC METHODS ---
 
+    /**
+     * @brief Calculates a full Zobrist hash from scratch for a given board state.
+     */
+    static uint64_t calculate_zobrist_hash(const Board& B);
+
+    /**
+     * @brief Initializes the static Zobrist key arrays. 
+     * MUST be called once at program startup.
+     */
+    static void init_zobrist_keys();
+
+    // --- STATIC MEMBER VARIABLES (DECLARATIONS) ---
+    // These tell the compiler that these variables exist.
+    // The memory for them is allocated in zobrist.cpp.
+    
+    // [piece_index][square]
+    static uint64_t piecesArray[12][64];
+    
+    // [0=WK, 1=WQ, 2=BK, 3=BQ]
+    static uint64_t castlingRights[4];
+    
+    // [file]
+    static uint64_t enPassantFile[8];
+    
+    // Hashed if it's white's turn
+    static uint64_t sideToMove;
 };

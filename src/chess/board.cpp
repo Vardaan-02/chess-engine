@@ -89,10 +89,10 @@ void Board::set_fen(std::string &fen_cstr) {
     }
 
     fullmove_number = fullmove;
-    zobrist_key = Zobrist::calculate_zobrist_hash(*this);
     update_king_squares_from_bitboards();
     update_occupancies();
     compute_pins_and_checks();
+    zobrist_key = Zobrist::calculate_zobrist_hash(*this);
 }
 
 // ----------------- FEN serialization -----------------
@@ -334,10 +334,10 @@ void Board::make_move(const chess::Move &mv) {
     
     if(undo.prev_en_passant_sq != chess::SQUARE_NONE)
     {
-       zobrist_key ^= Zobrist::enPassantKey[undo.prev_en_passant_sq];
+       zobrist_key ^= Zobrist::enPassantFile[undo.prev_en_passant_sq];
     }
     if (en_passant_sq != chess::SQUARE_NONE) {
-        zobrist_key ^= Zobrist::enPassantKey[en_passant_sq];
+        zobrist_key ^= Zobrist::enPassantFile[en_passant_sq];
     }
     
     // 5. Update king square if it moved
@@ -353,6 +353,7 @@ void Board::make_move(const chess::Move &mv) {
     // 7. Update combined bitboards
     update_occupancies();
     compute_pins_and_checks();
+    zobrist_key = Zobrist::calculate_zobrist_hash(*this);
 
     // 8. Push state to undo stack
     undo_stack.push_back(undo);

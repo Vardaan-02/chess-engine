@@ -358,9 +358,9 @@ void rook_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_pha
 
         // Connected Rooks
         uint64_t rook_attack_mask = chess::get_orthogonal_slider_attacks(sq, b.occupied);
-        if (rook_attack_mask & white_rooks){
-            mg_score += eval::eval_data.rook_connected_bonus.mg;
-            eg_score += eval::eval_data.rook_connected_bonus.eg;
+        if (rook_attack_mask & black_rooks){
+            mg_score -= eval::eval_data.rook_connected_bonus.mg;
+            eg_score -= eval::eval_data.rook_connected_bonus.eg;
         }
     }
 }

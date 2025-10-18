@@ -13,10 +13,14 @@ int main() {
     Search search_agent(512); // 128 MB transposition table
     std::thread search_thread;
 
-    OpeningBook book;
-    book.load_from_json("/home/harshit/code/chess-engine/data/opening_database/openings.json");
+    OpeningBook white_book = read_book("/home/vardaan-02/Shared/low-level-development/chess-engine/data/opening_database/white.bin");
+    OpeningBook black_book = read_book("/home/vardaan-02/Shared/low-level-development/chess-engine/data/opening_database/black.bin");
 
-    uci(board, search_agent, search_thread, book);
+    // for (auto i:white_book.entries){
+    //     std::cout << i.key << " " << i.learn << " " << i.move << " " << i.weight << std::endl;
+    // }
+
+    uci(board, search_agent, search_thread, white_book, black_book);
 
     return 0;
 }
