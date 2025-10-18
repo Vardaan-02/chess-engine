@@ -10,15 +10,11 @@ int main() {
     std::cin.tie(NULL);
 
     Board board;
-    Search search_agent(128); // 128 MB transposition table
+    Search search_agent(512); // 128 MB transposition table
     std::thread search_thread;
 
     OpeningBook book;
     book.load_from_json("/home/harshit/code/chess-engine/data/opening_database/openings.json");
-
-    // std::string starting_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-    // board.set_fen(starting_fen);
-    // std::cout << board.zobrist_key << "\n";
 
     uci(board, search_agent, search_thread, book);
 

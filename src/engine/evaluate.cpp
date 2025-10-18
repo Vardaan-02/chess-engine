@@ -213,6 +213,7 @@ void knight_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_p
 
         game_phase += eval::eval_data.phase_values[chess::KNIGHT]; 
 
+        // knight outpost
         uint64_t knight_outpost_square = chess::PawnAttacks[chess::WHITE][sq];
         if (knight_outpost_square & b.bitboard[chess::BP]){
             mg_score -= eval::eval_data.knight_outpost_bonus.mg;
@@ -266,88 +267,101 @@ void bishop_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_p
 void rook_evaluation(const Board& b, int& mg_score, int& eg_score, int& game_phase) {
     // 1. White Rooks
     uint64_t white_rooks = b.bitboard[chess::WR];
-    int rank_of_first_rook = -1;
-    int rank_of_second_rook = -1;
-    int file_of_first_rook = -1;
-    int file_of_second_rook = -1;
     while (white_rooks) {
         chess::Square sq = util::pop_lsb(white_rooks);
+        // Material Score
         mg_score += eval::eval_data.material_values[chess::ROOK].mg;
         eg_score += eval::eval_data.material_values[chess::ROOK].eg;
         
+        // PST
         mg_score += eval::eval_data.psts[chess::ROOK][sq].mg;
         eg_score += eval::eval_data.psts[chess::ROOK][sq].eg;
 
+        // Game Phase Calculation
         game_phase += eval::eval_data.phase_values[chess::ROOK]; 
 
+        // 7th Rank Bonus
         int rook_rank = util::get_rank(sq);
         if (rook_rank == 6){
             mg_score += eval::eval_data.rook_on_7th_bonus.mg;
             eg_score += eval::eval_data.rook_on_7th_bonus.eg;
         }
 
+        // Open and Semi Open files
         int rook_file = util::get_file(sq);
-        if ((chess::files[rook_file] & (~b.white_occupied)) == chess::files[rook_file]){
-            mg_score += eval::eval_data.rook_on_open_file_bonus.mg;
-            eg_score += eval::eval_data.rook_on_open_file_bonus.eg;
-        }
+        uint64_t file_mask = chess::files[rook_file];
+        bool no_friendly_pawns = (file_mask & b.bitboard[chess::WP]) == 0;
+        bool no_enemy_pawns = (file_mask & b.bitboard[chess::BP]) == 0;   
 
-        if (rank_of_first_rook != -1){
-            rank_of_second_rook = rook_rank;
-            file_of_second_rook = rook_file;
+        if (no_friendly_pawns) {
+            if (no_enemy_pawns) {
+                // Open File
+                mg_score += eval::eval_data.rook_on_open_file_bonus.mg;
+                eg_score += eval::eval_data.rook_on_open_file_bonus.eg;
+            } 
+            else {
+                // Semi-Open File
+                mg_score += eval::eval_data.rook_on_semi_open_file_bonus.mg;
+                eg_score += eval::eval_data.rook_on_semi_open_file_bonus.eg;
+            }
+        }  
+        
+        // Connected Rooks
+        uint64_t rook_attack_mask = chess::get_orthogonal_slider_attacks(sq, b.occupied);
+        if (rook_attack_mask & white_rooks){
+            mg_score += eval::eval_data.rook_connected_bonus.mg;
+            eg_score += eval::eval_data.rook_connected_bonus.eg;
         }
-        else {
-            rank_of_first_rook = rook_rank;
-            file_of_first_rook = rook_file;
-        }
-    }
-
-    if (rank_of_first_rook == rank_of_second_rook){
-        mg_score += eval::eval_data.rook_connected_bonus.mg;
-        eg_score += eval::eval_data.rook_connected_bonus.eg;
-    }
-    else if (file_of_first_rook == file_of_second_rook){
-        mg_score += eval::eval_data.rook_connected_bonus.mg;
-        eg_score += eval::eval_data.rook_connected_bonus.eg;
     }
     
     // 2. Black Rooks
     uint64_t black_rooks = b.bitboard[chess::BR];
-    rank_of_first_rook = -1;
-    rank_of_second_rook = -1;
-    file_of_first_rook = -1;
-    file_of_second_rook = -1;
     while (black_rooks) {
+        // Materail Score
         chess::Square sq = util::pop_lsb(black_rooks);
         mg_score -= eval::eval_data.material_values[chess::ROOK].mg;
         eg_score -= eval::eval_data.material_values[chess::ROOK].eg;
 
+        // Positional Score
         int pst_sq = util::flip(sq);
         mg_score -= eval::eval_data.psts[chess::ROOK][pst_sq].mg;
         eg_score -= eval::eval_data.psts[chess::ROOK][pst_sq].eg;
 
+        // Game Phase calculation
         game_phase += eval::eval_data.phase_values[chess::ROOK]; 
 
+        // Rook on 7th Rank
         int rook_rank = util::get_rank(sq);
         if (rook_rank == 1){
             mg_score -= eval::eval_data.rook_on_7th_bonus.mg;
             eg_score -= eval::eval_data.rook_on_7th_bonus.eg;
         }
-
+        
+        // Open and Semi Open files
         int rook_file = util::get_file(sq);
-        if ((chess::files[rook_file] & (~b.black_occupied)) == chess::files[rook_file]){
-            mg_score -= eval::eval_data.rook_on_open_file_bonus.mg;
-            eg_score -= eval::eval_data.rook_on_open_file_bonus.eg;
-        }
-    }
+        uint64_t file_mask = chess::files[rook_file];
+        bool no_friendly_pawns = (file_mask & b.bitboard[chess::BP]) == 0;
+        bool no_enemy_pawns = (file_mask & b.bitboard[chess::WP]) == 0;   
 
-    if (rank_of_first_rook == rank_of_second_rook){
-        mg_score -= eval::eval_data.rook_connected_bonus.mg;
-        eg_score -= eval::eval_data.rook_connected_bonus.eg;
-    }
-    else if (file_of_first_rook == file_of_second_rook){
-        mg_score -= eval::eval_data.rook_connected_bonus.mg;
-        eg_score -= eval::eval_data.rook_connected_bonus.eg;
+        if (no_friendly_pawns) {
+            if (no_enemy_pawns) {
+                // Open File
+                mg_score -= eval::eval_data.rook_on_open_file_bonus.mg;
+                eg_score -= eval::eval_data.rook_on_open_file_bonus.eg;
+            } 
+            else {
+                // Semi-Open File
+                mg_score -= eval::eval_data.rook_on_semi_open_file_bonus.mg;
+                eg_score -= eval::eval_data.rook_on_semi_open_file_bonus.eg;
+            }
+        }
+
+        // Connected Rooks
+        uint64_t rook_attack_mask = chess::get_orthogonal_slider_attacks(sq, b.occupied);
+        if (rook_attack_mask & white_rooks){
+            mg_score += eval::eval_data.rook_connected_bonus.mg;
+            eg_score += eval::eval_data.rook_connected_bonus.eg;
+        }
     }
 }
 

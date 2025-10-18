@@ -36,6 +36,7 @@ struct EvalData {
     // Specific bonuses and penalties
     TaperedScore bishop_pair_bonus;
     TaperedScore rook_on_open_file_bonus;
+    TaperedScore rook_on_semi_open_file_bonus;
     TaperedScore rook_on_7th_bonus;
     TaperedScore knight_outpost_bonus;
     TaperedScore bishop_center_control;
@@ -183,7 +184,8 @@ constexpr EvalData eval_data = {
     // 3. Bonuses and Penalties
     // --- STRUCTURAL & PIECE SYNERGY BONUSES ---
     .bishop_pair_bonus     = {35, 60},     // Midgame: strong on open diagonals; Endgame: more mobility, pair dominates
-    .rook_on_open_file_bonus = {25, 40},   // Rooks thrive on open/semi-open files
+    .rook_on_open_file_bonus = {70, 40},   // Rooks thrive on open/semi-open files
+    .rook_on_semi_open_file_bonus = {55, 25},   // Rooks thrive on open/semi-open files
     .rook_on_7th_bonus       = {40, 60},   // Rook on 7th rank dominates enemy pawns
     .knight_outpost_bonus    = {30, 45},   // Knight anchored on a safe outpost
     .bishop_center_control   = {15, 25},   // Centralized bishop, good diagonals
