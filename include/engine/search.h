@@ -29,7 +29,7 @@ public:
      * @param depth The fixed depth to search to.
      * @return The best move found for the current position.
      */
-    chess::Move start_search(Board& board, int depth, int wtime, int btime, int winc, int binc);
+    chess::Move start_search(Board& board, int depth, int movetime, int wtime, int btime, int winc, int binc);
 
     // Publicly accessible search statistics
     uint64_t nodes_searched;

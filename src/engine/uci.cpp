@@ -31,8 +31,8 @@ chess::Move parse_move(Board& board, const std::string& move_string) {
 
 // Function to run the search in a separate thread
 // This version correctly formats the output string for promotion moves.
-void start_search_thread(Board board, Search* search_agent, int depth, int wtime, int btime, int winc, int binc) {
-    chess::Move best_move = search_agent->start_search(board, depth, wtime, btime, winc, binc);
+void start_search_thread(Board board, Search* search_agent, int depth, int movetime, int wtime, int btime, int winc, int binc) {
+    chess::Move best_move = search_agent->start_search(board, depth, movetime, wtime, btime, winc, binc);
 
     std::string move_str = util::move_to_string(best_move);
 
@@ -53,6 +53,8 @@ void start_search_thread(Board board, Search* search_agent, int depth, int wtime
 void uci(Board &board, Search& search_agent, std::thread& search_thread, OpeningBook& book){
     std::string line;
     while (std::getline(std::cin, line)) {
+        // std::cout << "info " << line << std::endl;
+
         std::istringstream iss(line);
         std::string token;
         iss >> token;
@@ -103,12 +105,11 @@ void uci(Board &board, Search& search_agent, std::thread& search_thread, Opening
         } else if (token == "go") {
             uint64_t current_hash = board.zobrist_key; 
 
-            std::cout << current_hash << std::endl;
-
+            // std::cout << current_hash << std::endl;
             std::optional<std::string> book_move = book.getRandomMove(current_hash);
 
             
-            if (book_move.has_value()) {
+            if (book_move.has_value() && board.fullmove_number < 10) {
                 std::cout << *book_move << std::endl;
                 std::cout << "bestmove " << *book_move << std::endl;
             } else {
@@ -117,12 +118,14 @@ void uci(Board &board, Search& search_agent, std::thread& search_thread, Opening
                     search_thread.join();
                 }
                 
-                int wtime = -1, btime = -1, winc = 0, binc = 0;
+                int wtime = 0, btime = 0, winc = 0, binc = 0;
+                int movetime = 0;
                 int depth = 64;
                 std::string go_param;
                 
                 while(iss >> go_param) {
-                    if (go_param == "depth") iss >> depth; 
+                    if (go_param == "depth") ; /* iss >> depth; */ //Ignore depth command only work on time;
+                    else if(go_param == "movetime") iss >> movetime;
                     else if (go_param == "wtime") iss >> wtime;
                     else if (go_param == "btime") iss >> btime;
                     else if (go_param == "winc") iss >> winc;
@@ -130,7 +133,7 @@ void uci(Board &board, Search& search_agent, std::thread& search_thread, Opening
                 }
                 
                 search_agent.stopSearch.store(false);
-                search_thread = std::thread(start_search_thread, board, &search_agent, depth, wtime, btime, winc, binc);
+                search_thread = std::thread(start_search_thread, board, &search_agent, depth, movetime, wtime, btime, winc, binc);
             }
         } else if (token == "stop") {
             search_agent.stopSearch.store(true);

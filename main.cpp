@@ -14,7 +14,7 @@ int main() {
     std::thread search_thread;
 
     OpeningBook book;
-    book.load_from_json("/home/vardaan-02/Shared/low-level-development/chess-engine/data/opening_database/openings.json");
+    book.load_from_json("/home/harshit/code/chess-engine/data/opening_database/openings.json");
 
     // std::string starting_fen = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
     // board.set_fen(starting_fen);

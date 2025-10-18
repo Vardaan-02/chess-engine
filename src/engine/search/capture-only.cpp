@@ -5,6 +5,8 @@
 
 int64_t Search::search_captures_only(Board& board, int ply, int64_t alpha, int64_t beta)
 {   
+    if((ply & 1024) && std::chrono::steady_clock::now() >= searchEndTime) stopSearch.store(true);
+
     if(stopSearch.load()) return DRAW_EVAL;
 
     TTEntry entry{};

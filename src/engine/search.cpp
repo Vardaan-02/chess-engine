@@ -14,7 +14,7 @@ void move_to_front(std::vector<chess::Move>& moves, const chess::Move& move_to_f
     }
 }
 
-chess::Move Search::start_search(Board& board, int depth, int wtime, int btime, int winc, int binc) {    
+chess::Move Search::start_search(Board& board, int depth, int movetime, int wtime, int btime, int winc, int binc) {    
     stopSearch.store(false);
     TT.clear();
 
@@ -23,29 +23,34 @@ chess::Move Search::start_search(Board& board, int depth, int wtime, int btime, 
     //         history_scores[i][j] /= 2; // Halve all scores
     //     }
     // }
+    int time_for_move_ms;
+    auto now = std::chrono::steady_clock::now();
 
-    if (wtime > 0 || btime > 0) {
-        int time_for_move_ms;
+    if (movetime > 0) {
+        // A fixed time search was requested.
+        time_for_move_ms = movetime;
+        searchEndTime = now + std::chrono::milliseconds(time_for_move_ms);
+    }
+    else if (wtime > 0 || btime > 0) {
         int remaining_time = board.white_to_move ? wtime : btime;
         int increment = board.white_to_move ? winc : binc;
         
         //Use minimum of 15 secs or 1/25th of the remaining time + inc
-        time_for_move_ms = std::min(5000, (remaining_time / 25) + increment);
+        time_for_move_ms = std::min(8000, (remaining_time / 25) + increment);
 
         // Ensure we don't use more time than we have, with a small buffer.
         time_for_move_ms = std::min(time_for_move_ms, remaining_time - 50);
 
-        auto now = std::chrono::steady_clock::now();
         searchEndTime = now + std::chrono::milliseconds(time_for_move_ms);
     } else {
-        // If no time is given, search to the specified depth or a very high depth if none specified. (so time is very high)
-        searchEndTime = std::chrono::steady_clock::now() + std::chrono::hours(1); // 1 hour
+        // If no time is given, we assume 5 seconds
+        searchEndTime = std::chrono::steady_clock::now() + std::chrono::seconds(5); 
     }
     
     chess::Move best_move_overall{};
     int64_t last_score = 0;
 
-    for (int i = 1; i <= 8; ++i) {
+    for (int i = 1; i <= 60; ++i) {
 
         if (std::chrono::steady_clock::now() >= searchEndTime) {
             break;
@@ -129,6 +134,7 @@ chess::Move Search::start_search(Board& board, int depth, int wtime, int btime, 
 
         std::cout << "info depth " << i << " score cp " << last_score
         << " nodes " << nodes_searched << " pv " << util::move_to_string(best_move_overall) << std::endl;
+
 
         if (stopSearch.load()) break;
     }

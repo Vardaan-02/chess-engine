@@ -5,11 +5,11 @@
 
 int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t beta)
 {
-    if ((nodes_searched & 2047) == 0 && std::chrono::steady_clock::now() >= searchEndTime) {
+    if ((nodes_searched & 1024) == 0 && std::chrono::steady_clock::now() >= searchEndTime) {
             stopSearch.store(true);
         }
 
-    if ((nodes_searched & 2047) == 0 && stopSearch.load()) {
+    if ((nodes_searched & 1024) == 0 && stopSearch.load()) {
         return DRAW_EVAL;
     }
 
