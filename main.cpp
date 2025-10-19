@@ -10,7 +10,7 @@ int main() {
     std::cin.tie(NULL);
 
     Board board;
-    Search search_agent(512); // 128 MB transposition table
+    Search search_agent(512); // 512 MB transposition table
     std::thread search_thread;
 
     OpeningBook white_book = read_book("/home/vardaan-02/Shared/low-level-development/chess-engine/data/opening_database/white.bin");

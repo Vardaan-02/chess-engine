@@ -35,15 +35,16 @@ chess::Move Search::start_search(Board& board, int depth, int movetime, int wtim
         int remaining_time = board.white_to_move ? wtime : btime;
         int increment      = board.white_to_move ? winc  : binc;
 
-        int total_material = board.material_white + board.material_black;
-        double phase = std::clamp(total_material / 7800.0, 0.0, 1.0);
+        double phase = std::clamp((board.game_phase*1.0) / util::TOTAL_PHASE, 0.0, 1.0);
 
         double base_time = (remaining_time / 25.0) + increment;
 
-        double phase_factor = 1.0 + (1.0 - phase) * 1.5;    //1 for endgames, and 0 for opening
-        int time_for_move_ms = static_cast<int>(base_time * phase_factor);
+        int time_for_move_ms = static_cast<int>(base_time);
 
-        time_for_move_ms = std::min(time_for_move_ms, 10000); // cap 10 sec max
+        if (phase > 0.05) time_for_move_ms = std::min(time_for_move_ms, 3500); // cap 3.5 sec max
+        else time_for_move_ms = std::min(time_for_move_ms, 15000); // cap 15 sec max
+
+        std::cout << "phase: " << phase << " " << " time_for_move in seconds: " << (double)((time_for_move_ms*1.0)/1000) << "\n";
 
         if (remaining_time < 3 * 60 * 1000) {
             time_for_move_ms = 3000;
