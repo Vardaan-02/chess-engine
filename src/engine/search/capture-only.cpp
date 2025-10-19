@@ -27,14 +27,26 @@ int64_t Search::search_captures_only(Board& board, int ply, int64_t alpha, int64
     if(score >= beta) return beta;
     if(score > alpha) alpha = score;
 
-    MoveOrderer orderer(board, ply, *this, true);
+    MoveOrderer orderer(board, ply, *this, false);
     chess::Move move{};
     chess::Move best_move{};
 
     while(!(move = orderer.get_next_move()).is_null())
     {
+        bool checkOrCapture = false;
         board.make_move(move);
+        
         if(!board.is_position_legal()){
+            board.unmake_move(move);
+            continue;
+        }
+
+        chess::Square opp_king_sq = (board.white_to_move) ? board.black_king_sq : board.white_king_sq;
+        
+        if(board.square_attacked(opp_king_sq, board.white_to_move)) checkOrCapture = true;
+        if(move.flags() == chess::FLAG_CAPTURE || move.flags() == chess::FLAG_CAPTURE_PROMO || move.flags() == chess::FLAG_EP) checkOrCapture = true;
+
+        if(!checkOrCapture){
             board.unmake_move(move);
             continue;
         }

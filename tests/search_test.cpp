@@ -64,7 +64,7 @@ int main() {
         // {"8/7p/p5p1/5k2/3P1p2/2N1p3/1p6/7K b - - 1 56",1,"b2b1"}
 
         //starting position
-        {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 8, "e2e4"}
+        // {"rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1", 8, "e2e4"}
     };
 
     Search search_agent(128);
