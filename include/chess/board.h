@@ -47,6 +47,7 @@ public:
     uint64_t zobrist_pawn_key; // optional pawn hash
     int32_t material_white;
     int32_t material_black;
+    int game_phase;
 
     // --- Undo stack
     std::vector<chess::Undo> undo_stack;
@@ -130,6 +131,27 @@ private:
         board_array[to_sq] = chess::NO_PIECE;
         update_occupancies();
         if (piece == chess::WK || piece == chess::BK) update_king_squares_from_bitboards();
+    }
+
+    inline void update_game_phase() {
+        this->game_phase = 0;
+
+        // White pieces
+        this->game_phase += util::count_bits(this->bitboard[chess::WP]) * util::phase_values[chess::PAWN];
+        this->game_phase += util::count_bits(this->bitboard[chess::WN]) * util::phase_values[chess::KNIGHT];
+        this->game_phase += util::count_bits(this->bitboard[chess::WB]) * util::phase_values[chess::BISHOP];
+        this->game_phase += util::count_bits(this->bitboard[chess::WR]) * util::phase_values[chess::ROOK];
+        this->game_phase += util::count_bits(this->bitboard[chess::WQ]) * util::phase_values[chess::QUEEN];
+
+        // Black pieces
+        this->game_phase += util::count_bits(this->bitboard[chess::BP]) * util::phase_values[chess::PAWN];
+        this->game_phase += util::count_bits(this->bitboard[chess::BN]) * util::phase_values[chess::KNIGHT];
+        this->game_phase += util::count_bits(this->bitboard[chess::BB]) * util::phase_values[chess::BISHOP];
+        this->game_phase += util::count_bits(this->bitboard[chess::BR]) * util::phase_values[chess::ROOK];
+        this->game_phase += util::count_bits(this->bitboard[chess::BQ]) * util::phase_values[chess::QUEEN];
+
+        // Clamp game phase to a valid range
+        this->game_phase = std::max(0, std::min(this->game_phase, util::TOTAL_PHASE));
     }
 
     inline void update_occupancies() {

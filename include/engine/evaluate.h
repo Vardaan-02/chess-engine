@@ -5,13 +5,6 @@
 #include <array>
 
 namespace eval {
-constexpr int KNIGHT_PHASE = 1;
-constexpr int BISHOP_PHASE = 1;
-constexpr int ROOK_PHASE   = 2;
-constexpr int QUEEN_PHASE  = 4;
-constexpr int TOTAL_PHASE  = (KNIGHT_PHASE * 4) + (BISHOP_PHASE * 4) + (ROOK_PHASE * 4) + (QUEEN_PHASE * 2);
-
-
 // Best Practice 1: Create a structure for values that change
 // between the middlegame (mg) and endgame (eg). This is the
 // core concept of "Tapered Evaluation".
@@ -23,8 +16,6 @@ struct TaperedScore {
 // Best Practice 2: Encapsulate all evaluation parameters into a single,
 // comprehensive structure. This makes the entire configuration a single object.
 struct EvalData {
-    // Phase values for each piece type
-    std::array<int, chess::PIECE_TYPE_NB> phase_values;
 
     // Material values for each piece type
     std::array<TaperedScore, chess::PIECE_TYPE_NB> material_values;
@@ -40,6 +31,8 @@ struct EvalData {
     TaperedScore rook_on_7th_bonus;
     TaperedScore knight_outpost_bonus;
     TaperedScore bishop_center_control;
+    TaperedScore bad_bishop_penalty;
+    TaperedScore controlled_square_bonus;
     TaperedScore connected_pawn_bonus;
     TaperedScore doubled_pawn_penalty;
     TaperedScore isolated_pawn_penalty;
@@ -49,9 +42,7 @@ struct EvalData {
     TaperedScore passed_pawn_blocked_penalty;
     TaperedScore king_distance_from_center_penalty;
     TaperedScore opponent_king_distance_from_center_bonus;
-    TaperedScore king_near_to_pawns_penalty;
-    TaperedScore opponent_king_distance_opponent_king_penalty;
-    TaperedScore space_bonus;          // More central squares controlled = higher eval
+    TaperedScore king_distance_from_opponent_king_penalty;
     TaperedScore pawn_majority_bonus;  // On one wing, potential for passed pawns
     TaperedScore rook_connected_bonus; // Rooks on same rank/file
 
@@ -80,22 +71,13 @@ struct EvalData {
 // Best Practice 3: Create a single, compile-time constant instance of the configuration.
 // This ensures all values are in one place and initialized safely.
 constexpr EvalData eval_data = {
-    .phase_values = {{
-        0, // PAWN (has no phase value)
-        1, // KNIGHT
-        1, // BISHOP
-        2, // ROOK
-        4, // QUEEN
-        0  // KING (has no phase value)
-    }},
-
     // 1. Material Values
     .material_values = {{
         {0, 0},   // NO_PIECE_TYPE
-        {70, 120},   // PAWN
-        {320, 300},   // KNIGHT
+        {80, 100},   // PAWN
+        {320, 320},   // KNIGHT
         {330, 360},   // BISHOP
-        {500, 650},   // ROOK
+        {500, 600},   // ROOK
         {900, 1000},  // QUEEN
         {0, 0}      // KING (material value is infinite/not counted)
     }},
@@ -189,12 +171,14 @@ constexpr EvalData eval_data = {
     .rook_on_7th_bonus       = {40, 60},   // Rook on 7th rank dominates enemy pawns
     .knight_outpost_bonus    = {30, 45},   // Knight anchored on a safe outpost
     .bishop_center_control   = {15, 25},   // Centralized bishop, good diagonals
+    .bad_bishop_penalty      = {10, 2},    // Penalty for each friendly pawn on the same color square
+    .controlled_square_bonus = {5, 2}, 
 
     // --- PAWN STRUCTURE ---
     .connected_pawn_bonus    = {25, 35},   // Connected pawns reinforce each other
-    .doubled_pawn_penalty    = {-30, -45}, // Structural liability, especially later
-    .isolated_pawn_penalty   = {-20, -35}, // Easier to attack in endgame
-    .backward_pawn_penalty   = {-15, -25}, // Lags behind, tough to defend
+    .doubled_pawn_penalty    = {15, 30}, // Structural liability, especially later
+    .isolated_pawn_penalty   = {15, 30}, // Easier to attack in endgame
+    .backward_pawn_penalty   = {15, 25}, // Lags behind, tough to defend
 
     // --- PASSED PAWNS ---
     .passed_pawn_bonus = {{
@@ -208,28 +192,26 @@ constexpr EvalData eval_data = {
         {   0,   0 }   // Rank 8 (promotion)
     }},
     .passed_pawn_supported_bonus = {25, 45}, // Extra if protected by own pawn
-    .passed_pawn_blocked_penalty = {-40, -25}, // Penalize blocked passed pawns
+    .passed_pawn_blocked_penalty = {40, 25}, // Penalize blocked passed pawns
 
     // --- KING ACTIVITY ---
     .king_distance_from_center_penalty = {0, 3},
     .opponent_king_distance_from_center_bonus = {0, 6},
-    .king_near_to_pawns_penalty = {0, 3},
-    .opponent_king_distance_opponent_king_penalty = {0, 15},
+    .king_distance_from_opponent_king_penalty = {0, 15},
 
     // --- MISC STRATEGIC FACTORS ---
 
-    .space_bonus         = {10, 20},     // More central squares controlled = higher eval
     .pawn_majority_bonus = {15, 30},     // On one wing, potential for passed pawns
     .rook_connected_bonus = {40, 30},    // Rooks on same rank/file
 
     // 4. King Safety Values
     .pawn_shield_penalty = {{
         {0, 0},      // No penalty if pawn is on its starting rank
-        {-10, -15},  // Small penalty if pawn advanced one square
-        {-25, -30}   // Larger penalty if pawn advanced two+ squares
+        {10, 15},  // Small penalty if pawn advanced one square
+        {25, 30}   // Larger penalty if pawn advanced two+ squares
     }},
 
-    .open_file_penalty = {-100, -20}, // Penalty if a shielding pawn is missing entirely
+    .open_file_penalty = {100, 20}, // Penalty if a shielding pawn is missing entirely
 
     .king_attack_weights = {{
         0, // NO_PIECE
@@ -244,30 +226,25 @@ constexpr EvalData eval_data = {
     // The index is the sum of king_attack_weights of all attackers.
     // These values are just examples; they need to be tuned.
     .king_safety_table = {{
-        // Index is the raw 'attack score'
-        // Values are {middlegame_penalty, endgame_penalty}
-        // A higher attack score leads to a much larger penalty.
-
-        /* 0 - 9   */
-        {0,0},    {-5,-5},  {-10,-10}, {-20,-20}, {-30,-30}, {-45,-45}, {-60,-60}, {-75,-75}, {-90,-90}, {-105,-105},
+        {0,0},    {-5,-1},   {-10,-2},  {-20,-5},  {-30,-7},  {-45,-11}, {-60,-15}, {-75,-18}, {-90,-22}, {-105,-26},
         /* 10 - 19  */
-        {-120,-120},{-135,-135},{-150,-150},{-165,-165},{-180,-180},{-195,-195},{-210,-210},{-225,-225},{-240,-240},{-255,-255},
+        {-120,-30}, {-135,-33}, {-150,-37}, {-165,-41}, {-180,-45}, {-195,-48}, {-210,-52}, {-225,-56}, {-240,-60}, {-255,-63},
         /* 20 - 29  */
-        {-270,-270},{-285,-285},{-300,-300},{-315,-315},{-330,-330},{-345,-345},{-360,-360},{-375,-375},{-390,-390},{-405,-405},
+        {-270,-67}, {-285,-71}, {-300,-75}, {-315,-78}, {-330,-82}, {-345,-86}, {-360,-90}, {-375,-93}, {-390,-97}, {-405,-101},
         /* 30 - 39  */
-        {-420,-420},{-435,-435},{-450,-450},{-465,-465},{-480,-480},{-495,-495},{-510,-510},{-525,-525},{-540,-540},{-555,-555},
+        {-420,-105},{-435,-108},{-450,-112},{-465,-116},{-480,-120},{-495,-123},{-510,-127},{-525,-131},{-540,-135},{-555,-138},
         /* 40 - 49  */
-        {-570,-570},{-585,-585},{-600,-600},{-615,-615},{-630,-630},{-645,-645},{-660,-660},{-675,-675},{-690,-690},{-705,-705},
+        {-570,-142},{-585,-146},{-600,-150},{-615,-153},{-630,-157},{-645,-161},{-660,-165},{-675,-168},{-690,-172},{-705,-176},
         /* 50 - 59  */
-        {-720,-720},{-735,-735},{-750,-750},{-765,-765},{-780,-780},{-795,-795},{-810,-810},{-825,-825},{-840,-840},{-855,-855},
+        {-720,-180},{-735,-183},{-750,-187},{-765,-191},{-780,-195},{-795,-198},{-810,-202},{-825,-206},{-840,-210},{-855,-213},
         /* 60 - 69  */
-        {-870,-870},{-885,-885},{-900,-900},{-910,-910},{-920,-920},{-930,-930},{-940,-940},{-950,-950},{-960,-960},{-970,-970},
+        {-870,-217},{-885,-221},{-900,-225},{-910,-227},{-920,-230},{-930,-232},{-940,-235},{-950,-237},{-960,-240},{-970,-242},
         /* 70 - 79  */
-        {-980,-980},{-990,-990},{-1000,-1000},{-1010,-1010},{-1020,-1020},{-1030,-1030},{-1040,-1040},{-1050,-1050},{-1060,-1060},{-1070,-1070},
+        {-980,-245},{-990,-247},{-1000,-250},{-1010,-252},{-1020,-255},{-1030,-257},{-1040,-260},{-1050,-262},{-1060,-265},{-1070,-267},
         /* 80 - 89  */
-        {-1080,-1080},{-1090,-1090},{-1100,-1100},{-1110,-1110},{-1120,-1120},{-1130,-1130},{-1140,-1140},{-1150,-1150},{-1160,-1160},{-1170,-1170},
+        {-1080,-270},{-1090,-272},{-1100,-275},{-1110,-277},{-1120,-280},{-1130,-282},{-1140,-285},{-1150,-287},{-1160,-290},{-1170,-292},
         /* 90 - 99  */
-        {-1180,-1180},{-1190,-1190},{-1200,-1200},{-1210,-1210},{-1220,-1220},{-1230,-1230},{-1240,-1240},{-1250,-1250},{-1260,-1260},{-1270,-1270}
+        {-1180,-295},{-1190,-297},{-1200,-300},{-1210,-302},{-1220,-305},{-1230,-307},{-1240,-310},{-1250,-312},{-1260,-315},{-1270,-317}
     }},
 
     .passed_pawn_masks_white = {

@@ -194,6 +194,7 @@ struct Undo {
     uint64_t checks;       // squares of checking pieces
     bool double_check;
     uint64_t check_mask; // rays + checker squares
+    int game_phase;
     Undo() = default;
 };
 

@@ -108,11 +108,8 @@ void uci(Board &board, Search& search_agent, std::thread& search_thread, Opening
             // Choose the correct book based on whose turn it is
             OpeningBook& active_book = (board.white_to_move) ? white_book : black_book;
             std::optional<std::string> book_move = active_book.getRandomMove(current_hash);
-            
-            std::cout << "Hash : " << current_hash << std::endl;
 
             if (book_move.has_value() && board.fullmove_number < 10) {
-                std::cout << "BOOKMOVE \n";
                 std::cout << "bestmove " << *book_move << std::endl;
             } else {
                 if (search_thread.joinable()) {
