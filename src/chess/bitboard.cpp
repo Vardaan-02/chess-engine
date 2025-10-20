@@ -43,7 +43,7 @@ uint64_t ranks[] = {util::Rank1, util::Rank2, util::Rank3, util::Rank4, util::Ra
 //-----------------------------------------------------------------------------
 namespace {
 
-const uint64_t magicmoves_r_magics[64] = {
+const uint64_t magicmoves_r_magics[SQUARE_NB] = {
     0x0080001020400080ULL, 0x0040001000200040ULL, 0x0080081000200080ULL, 0x0080040800100080ULL,
     0x0080020400080080ULL, 0x0080010200040080ULL, 0x0080008001000200ULL, 0x0080002040800100ULL,
     0x0000800020400080ULL, 0x0000400020005000ULL, 0x0000801000200080ULL, 0x0000800800100080ULL,
@@ -62,7 +62,7 @@ const uint64_t magicmoves_r_magics[64] = {
     0x0001000204080011ULL, 0x0001000204000801ULL, 0x0001000082000401ULL, 0x0001FFFAABFAD1A2ULL
 };
 
-const uint64_t magicmoves_b_magics[64] = {
+const uint64_t magicmoves_b_magics[SQUARE_NB] = {
     0x0002020202020200ULL, 0x0002020202020000ULL, 0x0004010202000000ULL, 0x0004040080000000ULL,
     0x0001104000000000ULL, 0x0000821040000000ULL, 0x0000410410400000ULL, 0x0000104104104000ULL,
     0x0000040404040400ULL, 0x0000020202020200ULL, 0x0000040102020000ULL, 0x0000040400800000ULL,
@@ -81,7 +81,7 @@ const uint64_t magicmoves_b_magics[64] = {
     0x0000000010020200ULL, 0x0000000404080200ULL, 0x0000040404040400ULL, 0x0002020202020200ULL
 };
 
-const uint8_t magicmoves_r_shifts[64] = 
+const uint8_t magicmoves_r_shifts[SQUARE_NB] = 
 {
 	52, 53, 53, 53, 53, 53, 53, 52,
 	53, 54, 54, 54, 54, 54, 54, 53,
@@ -93,7 +93,7 @@ const uint8_t magicmoves_r_shifts[64] =
 	53, 54, 54, 53, 53, 53, 53, 53
 };
 
-const uint8_t magicmoves_b_shifts[64] = 
+const uint8_t magicmoves_b_shifts[SQUARE_NB] = 
 {
 	58, 59, 59, 59, 59, 59, 59, 58,
 	59, 59, 59, 59, 59, 59, 59, 59,
@@ -106,7 +106,7 @@ const uint8_t magicmoves_b_shifts[64] =
 };
 
 
-const uint64_t rook_masks[64] = {
+const uint64_t rook_masks[SQUARE_NB] = {
     0x01010101010101FEULL, 0x02020202020202FDULL, 0x04040404040404FBULL, 0x08080808080808F7ULL,
     0x10101010101010EFULL, 0x20202020202020DFULL, 0x40404040404040BFULL, 0x808080808080807FULL,
     0x010101010101FE01ULL, 0x020202020202FD02ULL, 0x040404040404FB04ULL, 0x080808080808F708ULL,
@@ -125,7 +125,7 @@ const uint64_t rook_masks[64] = {
     0xEF10101010101010ULL, 0xDF20202020202020ULL, 0xBF40404040404040ULL, 0x7F80808080808080ULL
 };
 
-const uint64_t bishop_masks[64] = {
+const uint64_t bishop_masks[SQUARE_NB] = {
     0x40201008040200ULL,   0x402010080500ULL,     0x4020110a00ULL,       0x41221400ULL,
     0x102442800ULL,        0x10204085000ULL,      0x1020408102000ULL,    0x2040810204000ULL,
     0x20100804020002ULL,   0x40201008050005ULL,   0x4020110a000aULL,     0x4122140014ULL,
@@ -146,9 +146,10 @@ const uint64_t bishop_masks[64] = {
 };
 
 
+
 // Pre-computed magic numbers for rooks and bishops. These are standard values.
 // Initialize the ROOK_MAGIC_INIT array of structs
-const Magic ROOK_MAGICS_INIT[64] = {
+const Magic ROOK_MAGICS_INIT[SQUARE_NB] = {
     {rook_masks[ 0], magicmoves_r_magics[ 0], magicmoves_r_shifts[ 0]},
     {rook_masks[ 1], magicmoves_r_magics[ 1], magicmoves_r_shifts[ 1]},
     {rook_masks[ 2], magicmoves_r_magics[ 2], magicmoves_r_shifts[ 2]},
@@ -215,7 +216,7 @@ const Magic ROOK_MAGICS_INIT[64] = {
     {rook_masks[63], magicmoves_r_magics[63], magicmoves_r_shifts[63]},
 };
 
-const Magic BISHOP_MAGICS_INIT[64] = {
+const Magic BISHOP_MAGICS_INIT[SQUARE_NB] = {
     {bishop_masks[ 0], magicmoves_b_magics[ 0], magicmoves_b_shifts[ 0]},
     {bishop_masks[ 1], magicmoves_b_magics[ 1], magicmoves_b_shifts[ 1]},
     {bishop_masks[ 2], magicmoves_b_magics[ 2], magicmoves_b_shifts[ 2]},

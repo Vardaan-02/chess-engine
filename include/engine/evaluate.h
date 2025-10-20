@@ -33,10 +33,11 @@ struct EvalData {
     TaperedScore bishop_center_control;
     TaperedScore bad_bishop_penalty;
     TaperedScore controlled_square_bonus;
-    TaperedScore connected_pawn_bonus;
+    std::array<std::array<TaperedScore, 32>, chess::PIECE_TYPE_NB> mobility_bonus;
     TaperedScore doubled_pawn_penalty;
     TaperedScore isolated_pawn_penalty;
     TaperedScore backward_pawn_penalty;
+    std::array<TaperedScore, 8> pawn_chain_bonus;
     std::array<TaperedScore, 8> passed_pawn_bonus; // This might be an array per rank later
     TaperedScore passed_pawn_supported_bonus;
     TaperedScore passed_pawn_blocked_penalty;
@@ -62,8 +63,7 @@ struct EvalData {
     // The more attackers, the penalty increases exponentially.
     std::array<TaperedScore, 100> king_safety_table;
 
-    std::array<uint64_t, chess::SQUARE_NB> passed_pawn_masks_white;
-    std::array<uint64_t, chess::SQUARE_NB> passed_pawn_masks_black;
+    
 
     std::array<uint64_t, 8> adjacent_files_masks;
 };
@@ -174,11 +174,65 @@ constexpr EvalData eval_data = {
     .bad_bishop_penalty      = {10, 2},    // Penalty for each friendly pawn on the same color square
     .controlled_square_bonus = {5, 2}, 
 
+    .mobility_bonus = {{
+        // No Piece
+        {{
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}
+        }},
+        // Pawn (No mobility bonus)
+        {{
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}
+        }},
+        // Knight (Max 8 moves)
+        {{ // MG, EG
+            {-62, -81}, {-53, -53}, {-12, -29}, {-4,  -2}, { 3,  12}, { 12,  23}, { 21,  34}, { 28,  43},{ 32,  55}
+        }},
+        // Bishop (Max 13 moves)
+        {{ // MG, EG
+            {-48, -59}, {-20, -22}, { 16, -11}, { 26,   4}, { 38,  14}, { 51,  27}, { 55,  34}, { 63,  45},
+            { 68,  54}, { 81,  68}, { 88,  78}, { 91,  89}, { 98,  97}, {108, 100}
+        }},
+        // Rook (Max 14 moves)
+        {{ // MG, EG
+            {-53, -72}, {-28, -26}, {-14,  13}, { -5,  32}, { -2,  54}, {  6,  73}, { 13,  84}, { 19,  98},
+            { 29, 106}, { 37, 116}, { 40, 123}, { 43, 127}, { 45, 128}, { 51, 130}, { 51, 130}
+        }},
+        // Queen (Max 27 moves)
+        {{ // MG, EG
+            {-39, -42}, {-21, -22}, { -9,  -9}, {  3,   7}, {  8,  18}, { 17,  28}, { 21,  38}, { 28,  49},
+            { 33,  56}, { 38,  67}, { 45,  73}, { 49,  78}, { 54,  84}, { 58,  89}, { 63,  96}, { 63, 100},
+            { 68, 106}, { 72, 112}, { 75, 116}, { 78, 121}, { 83, 126}, { 87, 133}, { 89, 136}, { 93, 138},
+            { 96, 143}, { 99, 148}, {102, 150}, {102, 150}
+        }},
+        // King (No mobility bonus in the same way, handled by PSTs)
+        {{
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},
+            {0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0},{0,0}
+        }},
+    }},
+
     // --- PAWN STRUCTURE ---
-    .connected_pawn_bonus    = {25, 35},   // Connected pawns reinforce each other
-    .doubled_pawn_penalty    = {15, 30}, // Structural liability, especially later
-    .isolated_pawn_penalty   = {15, 30}, // Easier to attack in endgame
-    .backward_pawn_penalty   = {15, 25}, // Lags behind, tough to defend
+    .doubled_pawn_penalty    = {15, 30},   // Structural liability, especially later
+    .isolated_pawn_penalty   = {15, 30},   // Easier to attack in endgame
+    .backward_pawn_penalty   = {15, 25},   // Lags behind, tough to defend
+    .pawn_chain_bonus = {{
+        {  25,  35 },    // 1 Link
+        {  60,  80 },    // 2 Links
+        { 100, 130 },    // 3 Links
+        { 135, 170 },    // 4 Links
+        { 160, 210 },    // 5 Links
+        { 180, 250 },    // 6 Links
+        { 200, 290 },    // 7 Links
+        { 220, 330 }     // 8 Links (max possible)
+    }},
 
     // --- PASSED PAWNS ---
     .passed_pawn_bonus = {{
@@ -246,14 +300,6 @@ constexpr EvalData eval_data = {
         /* 90 - 99  */
         {-1180,-295},{-1190,-297},{-1200,-300},{-1210,-302},{-1220,-305},{-1230,-307},{-1240,-310},{-1250,-312},{-1260,-315},{-1270,-317}
     }},
-
-    .passed_pawn_masks_white = {
-        217020518514230016ULL, 506381209866536704ULL, 1012762419733073408ULL, 2025524839466146816ULL, 4051049678932293632ULL, 8102099357864587264ULL, 16204198715729174528ULL, 13889313184910721024ULL, 217020518514229248ULL, 506381209866534912ULL, 1012762419733069824ULL, 2025524839466139648ULL, 4051049678932279296ULL, 8102099357864558592ULL, 16204198715729117184ULL, 13889313184910671872ULL, 217020518514032640ULL, 506381209866076160ULL, 1012762419732152320ULL, 2025524839464304640ULL, 4051049678928609280ULL, 8102099357857218560ULL, 16204198715714437120ULL, 13889313184898088960ULL, 217020518463700992ULL, 506381209748635648ULL, 1012762419497271296ULL, 2025524838994542592ULL, 4051049677989085184ULL, 8102099355978170368ULL, 16204198711956340736ULL, 13889313181676863488ULL, 217020505578799104ULL, 506381179683864576ULL, 1012762359367729152ULL, 2025524718735458304ULL, 4051049437470916608ULL, 8102098874941833216ULL, 16204197749883666432ULL, 13889312357043142656ULL, 217017207043915776ULL, 506373483102470144ULL, 1012746966204940288ULL, 2025493932409880576ULL, 4050987864819761152ULL, 8101975729639522304ULL, 16203951459279044608ULL, 13889101250810609664ULL, 216172782113783808ULL, 504403158265495552ULL, 1008806316530991104ULL, 2017612633061982208ULL, 4035225266123964416ULL, 8070450532247928832ULL, 16140901064495857664ULL, 13835058055282163712ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL
-    },
-
-    .passed_pawn_masks_black = {
-        0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 0ULL, 3ULL, 7ULL, 14ULL, 28ULL, 56ULL, 112ULL, 224ULL, 192ULL, 771ULL, 1799ULL, 3598ULL, 7196ULL, 14392ULL, 28784ULL, 57568ULL, 49344ULL, 197379ULL, 460551ULL, 921102ULL, 1842204ULL, 3684408ULL, 7368816ULL, 14737632ULL, 12632256ULL, 50529027ULL, 117901063ULL, 235802126ULL, 471604252ULL, 943208504ULL, 1886417008ULL, 3772834016ULL, 3233857728ULL, 12935430915ULL, 30182672135ULL, 60365344270ULL, 120730688540ULL, 241461377080ULL, 482922754160ULL, 965845508320ULL, 827867578560ULL, 3311470314243ULL, 7726764066567ULL, 15453528133134ULL, 30907056266268ULL, 61814112532536ULL, 123628225065072ULL, 247256450130144ULL, 211934100111552ULL, 847736400446211ULL, 1978051601041159ULL, 3956103202082318ULL, 7912206404164636ULL, 15824412808329272ULL, 31648825616658544ULL, 63297651233317088ULL, 54255129628557504ULL
-    },
 
     .adjacent_files_masks = {{
         util::FileB,                    // File A

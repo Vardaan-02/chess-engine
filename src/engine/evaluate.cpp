@@ -99,12 +99,19 @@ void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
     // 1. White Pawns
     uint64_t white_pawns = b.bitboard[chess::WP];
 
-    // Space
     uint64_t white_pawns_east_attacks = util::shift_board(white_pawns, chess::NORTH_EAST) & util::black_side_of_board;
     uint64_t white_pawns_west_attacks = util::shift_board(white_pawns, chess::NORTH_WEST) & util::black_side_of_board;
-
+    
     uint64_t white_pawns_attacks = white_pawns_east_attacks | white_pawns_west_attacks;
 
+    // Pawn Chain
+    uint64_t pawn_chain_white = white_pawns_attacks & white_pawns;
+    int no_of_pawns_in_pawn_chain_white = util::count_bits(pawn_chain_white);
+
+    mg_score += eval::eval_data.pawn_chain_bonus[no_of_pawns_in_pawn_chain_white].mg;
+    eg_score += eval::eval_data.pawn_chain_bonus[no_of_pawns_in_pawn_chain_white].eg;
+    
+    // Space
     int no_of_square_controlled_by_white = util::count_bits(white_pawns_attacks);
 
     mg_score += no_of_square_controlled_by_white * eval::eval_data.controlled_square_bonus.mg;
@@ -122,18 +129,25 @@ void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
         eg_score += eval::eval_data.psts[chess::PAWN][sq].eg;
         
         // Passed Pawn Bonus
-        uint64_t passing_mask = eval::eval_data.passed_pawn_masks_white[sq];
+        uint64_t passing_mask = chess::passed_pawn_masks_white[sq];
         uint64_t enemy_pawns = b.bitboard[chess::BP] & passing_mask;
         if ( !enemy_pawns ) {
             mg_score += eval::eval_data.passed_pawn_bonus[util::get_rank(sq)].mg;
             eg_score += eval::eval_data.passed_pawn_bonus[util::get_rank(sq)].eg;
         }
-        
-        // Connected Pawn Bonus
-        uint64_t connecting_square = chess::PawnAttacks[chess::BLACK][sq];
-        if (connecting_square & b.bitboard[chess::WP]) {
-            mg_score += eval::eval_data.connected_pawn_bonus.mg;
-            eg_score += eval::eval_data.connected_pawn_bonus.eg;
+
+        // Backward Pawn Penalty
+        uint64_t backward_mask = chess::passed_pawn_masks_black[sq];
+        uint64_t friendly_pawns = b.bitboard[chess::WP] & backward_mask;
+        if ( !friendly_pawns ){
+            uint64_t next_square_bitboard = util::shift_board(util::create_bitboard_from_square(sq), chess::NORTH);
+            int next_square = util::lsb(next_square_bitboard);
+            uint64_t next_square_attacking_mask = chess::PawnAttacks[chess::WHITE][next_square];
+
+            if ( next_square_attacking_mask & b.bitboard[chess::BP] ){
+                mg_score -= eval::eval_data.backward_pawn_penalty.mg;
+                eg_score -= eval::eval_data.backward_pawn_penalty.eg;
+            }
         }
         
         // Isolated Pawn Penalty
@@ -148,14 +162,21 @@ void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
     // 2. Black Pawns
     uint64_t black_pawns = b.bitboard[chess::BP];
 
-    // Space
     uint64_t black_pawns_east_attacks = util::shift_board(black_pawns, chess::SOUTH_EAST) & util::white_side_of_board;
     uint64_t black_pawns_west_attacks = util::shift_board(black_pawns, chess::SOUTH_WEST) & util::white_side_of_board;
-
+    
     uint64_t black_pawns_attacks = black_pawns_east_attacks | black_pawns_west_attacks;
-
+    
+    // Pawn Chain
+    uint64_t pawn_chain_black = black_pawns_attacks & black_pawns;
+    int no_of_pawns_in_pawn_chain_black = util::count_bits(pawn_chain_black);
+    
+    mg_score -= eval::eval_data.pawn_chain_bonus[no_of_pawns_in_pawn_chain_black].mg;
+    eg_score -= eval::eval_data.pawn_chain_bonus[no_of_pawns_in_pawn_chain_black].eg;
+    
+    // Space
     int no_of_square_controlled_by_black = util::count_bits(black_pawns_attacks);
-
+    
     mg_score -= no_of_square_controlled_by_black * eval::eval_data.controlled_square_bonus.mg;
     eg_score -= no_of_square_controlled_by_black * eval::eval_data.controlled_square_bonus.eg;
 
@@ -173,18 +194,25 @@ void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
         eg_score -= eval::eval_data.psts[chess::PAWN][pst_sq].eg;
         
         // Passed Pawn Bonus
-        uint64_t passing_mask = eval::eval_data.passed_pawn_masks_black[sq];
+        uint64_t passing_mask = chess::passed_pawn_masks_black[sq];
         uint64_t enemy_pawns = b.bitboard[chess::WP] & passing_mask;
         if ( !enemy_pawns ) {
             mg_score -= eval::eval_data.passed_pawn_bonus[util::get_rank(pst_sq)].mg;
             eg_score -= eval::eval_data.passed_pawn_bonus[util::get_rank(pst_sq)].eg;
         }
-        
-        // Connected Pawn Bonus
-        uint64_t connecting_square = chess::PawnAttacks[chess::WHITE][sq];
-        if ( connecting_square & b.bitboard[chess::BP] ) {
-            mg_score -= eval::eval_data.connected_pawn_bonus.mg;
-            eg_score -= eval::eval_data.connected_pawn_bonus.eg;
+
+        // Backward Pawn Penalty
+        uint64_t backward_mask = chess::passed_pawn_masks_black[sq];
+        uint64_t friendly_pawns = b.bitboard[chess::BP] & backward_mask;
+        if ( !friendly_pawns ){
+            uint64_t next_square_bitboard = util::shift_board(util::create_bitboard_from_square(sq), chess::SOUTH);
+            int next_square = util::lsb(next_square_bitboard);
+            uint64_t next_square_attacking_mask = chess::PawnAttacks[chess::BLACK][next_square];
+
+            if ( next_square_attacking_mask & b.bitboard[chess::WP] ){
+                mg_score += eval::eval_data.backward_pawn_penalty.mg;
+                eg_score += eval::eval_data.backward_pawn_penalty.eg;
+            }
         }
         
         // Isolated Pawn Penalty
@@ -234,6 +262,12 @@ void knight_evaluation(const Board& b, int& mg_score, int& eg_score) {
             eg_score += eval::eval_data.knight_outpost_bonus.eg;
         }
 
+        // Mobility
+        uint64_t knight_moves_bitboard = chess::KnightAttacks[sq] & (~b.white_occupied);
+        int knight_moves = util::count_bits(knight_moves_bitboard);
+        mg_score += eval::eval_data.mobility_bonus[chess::KNIGHT][knight_moves].mg;
+        eg_score += eval::eval_data.mobility_bonus[chess::KNIGHT][knight_moves].eg;
+
         // Space 
         uint64_t knight_attacks_on_black_side = chess::KnightAttacks[sq] & util::black_side_of_board;
 
@@ -264,6 +298,12 @@ void knight_evaluation(const Board& b, int& mg_score, int& eg_score) {
             mg_score -= eval::eval_data.knight_outpost_bonus.mg;
             eg_score -= eval::eval_data.knight_outpost_bonus.eg;
         }
+
+        // Mobility
+        uint64_t knight_moves_bitboard = chess::KnightAttacks[sq] & (~b.black_occupied);
+        int knight_moves = util::count_bits(knight_moves_bitboard);
+        mg_score -= eval::eval_data.mobility_bonus[chess::KNIGHT][knight_moves].mg;
+        eg_score -= eval::eval_data.mobility_bonus[chess::KNIGHT][knight_moves].eg;
 
         // Space 
         uint64_t knight_attacks_on_white_side = chess::KnightAttacks[sq] & util::white_side_of_board;
@@ -299,6 +339,12 @@ void bishop_evaluation(const Board& b, int& mg_score, int& eg_score) {
         mg_score -= no_of_pawns_on_bishop_color * eval::eval_data.bad_bishop_penalty.mg;
         eg_score -= no_of_pawns_on_bishop_color * eval::eval_data.bad_bishop_penalty.eg;
 
+        // Mobility
+        uint64_t bishop_moves_bitboard = chess::get_diagonal_slider_attacks(sq, b.occupied) & (~b.white_occupied);
+        int bishop_moves = util::count_bits(bishop_moves_bitboard);
+        mg_score += eval::eval_data.mobility_bonus[chess::BISHOP][bishop_moves].mg;
+        eg_score += eval::eval_data.mobility_bonus[chess::BISHOP][bishop_moves].eg;
+
         // Space 
         uint64_t bishop_attacks_on_balck_side = chess::get_diagonal_slider_attacks(sq, b.occupied) & util::black_side_of_board;
 
@@ -332,6 +378,12 @@ void bishop_evaluation(const Board& b, int& mg_score, int& eg_score) {
         // Bad Bishop Penality
         mg_score += no_of_pawns_on_bishop_color * eval::eval_data.bad_bishop_penalty.mg;
         eg_score += no_of_pawns_on_bishop_color * eval::eval_data.bad_bishop_penalty.eg;
+
+        // Mobility
+        uint64_t bishop_moves_bitboard = chess::get_diagonal_slider_attacks(sq, b.occupied) & (~b.black_occupied);
+        int bishop_moves = util::count_bits(bishop_moves_bitboard);
+        mg_score -= eval::eval_data.mobility_bonus[chess::BISHOP][bishop_moves].mg;
+        eg_score -= eval::eval_data.mobility_bonus[chess::BISHOP][bishop_moves].eg;
 
         // Space 
         uint64_t bishop_attacks_on_white_side = chess::get_diagonal_slider_attacks(sq, b.occupied) & util::white_side_of_board;
@@ -402,6 +454,12 @@ void rook_evaluation(const Board& b, int& mg_score, int& eg_score) {
             eg_score += eval::eval_data.rook_connected_bonus.eg;
         }
 
+        // Mobility
+        uint64_t rook_moves_bitboard = chess::get_orthogonal_slider_attacks(sq, b.occupied) & (~b.white_occupied);
+        int rook_moves = util::count_bits(rook_moves_bitboard);
+        mg_score += eval::eval_data.mobility_bonus[chess::ROOK][rook_moves].mg;
+        eg_score += eval::eval_data.mobility_bonus[chess::ROOK][rook_moves].eg;
+
         // Space 
         uint64_t rook_attacks_on_black_side = rook_attack_mask & util::black_side_of_board;
 
@@ -457,6 +515,12 @@ void rook_evaluation(const Board& b, int& mg_score, int& eg_score) {
             eg_score -= eval::eval_data.rook_connected_bonus.eg;
         }
 
+        // Mobility
+        uint64_t rook_moves_bitboard = chess::get_orthogonal_slider_attacks(sq, b.occupied) & (~b.black_occupied);
+        int rook_moves = util::count_bits(rook_moves_bitboard);
+        mg_score -= eval::eval_data.mobility_bonus[chess::ROOK][rook_moves].mg;
+        eg_score -= eval::eval_data.mobility_bonus[chess::ROOK][rook_moves].eg;
+
         // Space 
         uint64_t rook_attacks_on_white_side = rook_attack_mask & util::white_side_of_board;
 
@@ -481,8 +545,15 @@ void queen_evaluation(const Board& b, int& mg_score, int& eg_score) {
         mg_score += eval::eval_data.psts[chess::QUEEN][sq].mg;
         eg_score += eval::eval_data.psts[chess::QUEEN][sq].eg;
 
-        // Space 
         uint64_t attack_mask = chess::get_diagonal_slider_attacks(sq, b.occupied) | chess::get_orthogonal_slider_attacks(sq, b.occupied);
+        attack_mask = attack_mask & (!b.white_occupied);
+
+        // Mobility
+        int queen_moves = util::count_bits(attack_mask);
+        mg_score += eval::eval_data.mobility_bonus[chess::QUEEN][queen_moves].mg;
+        eg_score += eval::eval_data.mobility_bonus[chess::QUEEN][queen_moves].eg;
+        
+        // Space 
         uint64_t queen_attacks_on_black_side = attack_mask & util::black_side_of_board;
 
         int no_of_square_controlled_by_white = util::count_bits(queen_attacks_on_black_side);
@@ -506,10 +577,16 @@ void queen_evaluation(const Board& b, int& mg_score, int& eg_score) {
         mg_score -= eval::eval_data.psts[chess::QUEEN][pst_sq].mg;
         eg_score -= eval::eval_data.psts[chess::QUEEN][pst_sq].eg;
 
-        // Space 
         uint64_t attack_mask = chess::get_diagonal_slider_attacks(sq, b.occupied) | chess::get_orthogonal_slider_attacks(sq, b.occupied);
+        attack_mask = attack_mask & (~b.black_occupied);
+        
+        // Mobility
+        int queen_moves = util::count_bits(attack_mask);
+        mg_score -= eval::eval_data.mobility_bonus[chess::QUEEN][queen_moves].mg;
+        eg_score -= eval::eval_data.mobility_bonus[chess::QUEEN][queen_moves].eg;
+        
+        // Space 
         uint64_t queen_attacks_on_white_side = attack_mask & util::white_side_of_board;
-
         int no_of_square_controlled_by_black = util::count_bits(queen_attacks_on_white_side);
 
         mg_score -= no_of_square_controlled_by_black * eval::eval_data.controlled_square_bonus.mg;

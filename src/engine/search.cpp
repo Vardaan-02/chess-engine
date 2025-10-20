@@ -41,7 +41,8 @@ chess::Move Search::start_search(Board& board, int depth, int movetime, int wtim
 
         int time_for_move_ms = static_cast<int>(base_time);
 
-        if (phase > 0.05) time_for_move_ms = std::min(time_for_move_ms, 3500); // cap 3.5 sec max
+        if (phase > 0.15) time_for_move_ms = std::min(time_for_move_ms, 3500); // cap 3.5 sec max
+        if (phase > 0.05) time_for_move_ms = std::min(time_for_move_ms, 8000); // cap 8 sec max
         else time_for_move_ms = std::min(time_for_move_ms, 15000); // cap 15 sec max
 
         std::cout << "phase: " << phase << " " << " time_for_move in seconds: " << (double)((time_for_move_ms*1.0)/1000) << "\n";
