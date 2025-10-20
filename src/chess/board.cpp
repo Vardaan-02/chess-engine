@@ -471,6 +471,34 @@ bool Board::square_attacked(chess::Square sq, bool by_white) const{
     return false;
 }
 
+chess::PieceType Board::get_least_value_attacking_piece_type_on_sq(chess::Square sq, bool by_white) const {
+    
+    chess::Color attackerColor = (by_white) ? chess::WHITE : chess::BLACK;
+    // 1. Pawns
+    if (chess::PawnAttacks[by_white][sq] & bitboard[chess::make_piece(attackerColor, chess::PAWN)]) return chess::PAWN;
+
+    // 2. Knight
+    if (chess::KnightAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KNIGHT)]) return chess::KNIGHT;
+
+    // 3. Bishop
+    uint64_t diagonal_pieces = bitboard[chess::make_piece(attackerColor, chess::BISHOP)];
+    if (chess::get_diagonal_slider_attacks(sq, occupied) & diagonal_pieces) return chess::BISHOP;
+
+    // 4. Rook
+    uint64_t orthogonal_pieces = bitboard[chess::make_piece(attackerColor, chess::ROOK)];
+    if (chess::get_orthogonal_slider_attacks(sq, occupied) & orthogonal_pieces) return chess::ROOK;
+    
+    // 5. Queen
+    uint64_t queen = bitboard[chess::make_piece(attackerColor, chess::QUEEN)];
+    if (chess::get_diagonal_slider_attacks(sq, occupied) & queen) return chess::QUEEN;
+    if (chess::get_orthogonal_slider_attacks(sq, occupied) & queen) return chess::QUEEN;
+
+    // 6. King
+    if (chess::KingAttacks[sq] & bitboard[chess::make_piece(attackerColor, chess::KING)]) return chess::KING;
+
+    return chess::NO_PIECE_TYPE;
+}
+
 uint64_t Board::attackers_to(chess::Square sq, bool by_white) const {
     uint64_t attackers_bitboard = 0;
     chess::Color attackerColor = by_white ? chess::WHITE : chess::BLACK;

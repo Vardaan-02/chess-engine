@@ -5,9 +5,9 @@
 
 int64_t Search::search_captures_only(Board& board, int ply, int64_t alpha, int64_t beta)
 {   
-    if((ply & 1024) && std::chrono::steady_clock::now() >= searchEndTime) stopSearch.store(true);
+    // if((ply & 1024) && std::chrono::steady_clock::now() >= searchEndTime) stopSearch.store(true);
 
-    if(stopSearch.load()) return DRAW_EVAL;
+    // if(stopSearch.load()) return DRAW_EVAL;
 
     TTEntry entry{};
     int64_t og_alpha = alpha;
@@ -41,10 +41,14 @@ int64_t Search::search_captures_only(Board& board, int ply, int64_t alpha, int64
             continue;
         }
 
-        chess::Square opp_king_sq = (board.white_to_move) ? board.black_king_sq : board.white_king_sq;
-        
-        if(board.square_attacked(opp_king_sq, board.white_to_move)) checkOrCapture = true;
         if(move.flags() == chess::FLAG_CAPTURE || move.flags() == chess::FLAG_CAPTURE_PROMO || move.flags() == chess::FLAG_EP) checkOrCapture = true;
+        if (checkOrCapture && orderer.see(board, move) < 0) {
+            board.unmake_move(move);
+            continue; 
+        }
+
+        chess::Square opp_king_sq = (board.white_to_move) ? board.black_king_sq : board.white_king_sq;
+        if(board.square_attacked(opp_king_sq, board.white_to_move)) checkOrCapture = true;
 
         if(!checkOrCapture){
             board.unmake_move(move);

@@ -113,6 +113,7 @@ public:
     chess::Piece piece_on_sq(chess::Square sq) const { return board_array[sq]; }
     bool square_attacked(chess::Square sq, bool by_white) const; // uses attack tables
     uint64_t attackers_to(chess::Square sq, bool by_white) const;
+    chess::PieceType get_least_value_attacking_piece_type_on_sq(chess::Square sq, bool by_white) const;
     bool is_position_legal();
 
 private:

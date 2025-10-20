@@ -17,15 +17,13 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
     {
         if(board.halfmove_clock >= 100) return DRAW_EVAL;
 
-        // the position can only repeat if there were no pawn pushes or captures
-        // half move clock records that number of moves (so we dont have to search the entire undo stack)
         int end_index = board.undo_stack.size(); 
         int rep_count{};
         int start_index = std::max(0, end_index - (int)(board.halfmove_clock));
         for(; start_index < end_index; ++start_index)
         {
             if(board.zobrist_key == board.undo_stack[start_index].zobrist_before) ++rep_count;
-            if(rep_count >= 2) return DRAW_EVAL; //2 times already and this is the third time
+            if(rep_count >= 2) return DRAW_EVAL; 
         }
     }
 
@@ -35,6 +33,7 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
 
     TTEntry entry{};
     int64_t og_alpha = alpha;
+    chess::Move best_move_from_tt; // Store TT move
 
     if(TT.probe(board.zobrist_key, entry)){
         if(entry.depth >= depth)
@@ -43,24 +42,16 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
             if(entry.bound == TTEntry::LOWER_BOUND) alpha = std::max(alpha, entry.score);
             if(entry.bound == TTEntry::UPPER_BOUND) beta = std::min(beta, entry.score);
         }
-
+        best_move_from_tt = entry.best_move; // Get TT move for ordering
         if(alpha >= beta) return entry.score;
     }
 
-    // Conditions to apply Null move pruning:
-    // 1. Not in check.
-    // 2. Not in the first few plies of the game.
-    // 3. The current search depth is deep enough (e.g., > 2).
-    // 4. The side to move has enough non-pawn material (to avoid zugzwang issues).
     if (!board.checks && ply > 0 && depth > 2 && (board.white_to_move ? board.material_white > 3000 : board.material_black > 3000)) {
-        // The reduction factor 'R' is typically 2 or 3.
         int R = 3;
-
         board.make_move({});
         int64_t null_score = -negamax(board, depth - 1 - R, ply + 1, -beta, -beta + 1);
         board.unmake_move({}); 
 
-        //even after making a null move the opp couldnt make our score < Beta so its too good lets prune
         if (null_score >= beta) {
             return beta;
         }
@@ -71,9 +62,10 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
         return search_captures_only(board, ply, alpha, beta);
     }
     
+    // Orderer will use best_move_from_tt if it's valid
     MoveOrderer orderer(board, ply, *this, false);
     chess::Move move;
-    chess::Move best_move;
+    chess::Move best_move = best_move_from_tt; // Initialize with TT move
 
     int legal_moves_found = 0;
     
@@ -87,25 +79,31 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
         }
         
         legal_moves_found++;
-
-        // int64_t score = -negamax(board, depth - 1, ply+1, -beta, -alpha);
         int64_t score;
 
-        if (legal_moves_found > 5 && depth > 4 && move.flags() == chess::FLAG_QUIET) {
-            // After the first few moves, if the move is quiet and depth is sufficient...
-            int reduction = std::min(4, 1 + depth / 5);
-            // More complex reductions can depend on depth and move number
-            // Search with a reduced depth
+        // --- CORRECT PVS (Principal Variation Search) ---
+        if (legal_moves_found == 1) {
+            // 1. First Move (PV): Search with the full window.
+            score = -negamax(board, depth - 1, ply + 1, -beta, -alpha);
+        
+        } else {
+            // 2. Subsequent Moves: Assume they are worse. Search with a "null window".
+            
+            // --- LMR (Late Move Reduction) ---
+            int reduction = 0;
+            if (legal_moves_found > 5 && depth > 4 && move.flags() == chess::FLAG_QUIET && !board.checks) {
+                reduction = std::min(4, 1 + depth / 5); 
+            }
+            // ---------------------------------
+
             score = -negamax(board, depth - 1 - reduction, ply + 1, -alpha - 1, -alpha);
-        } 
-        else {
-            // Ensure the full search is done for the first few moves or if a re-search is needed
-            score = -negamax(board, depth - 1, ply + 1, -beta, -alpha);
+
+            // 3. Re-search: If the null window failed high, re-search with the full window.
+            if (score > alpha && score < beta) {
+                score = -negamax(board, depth - 1, ply + 1, -beta, -alpha);
+            }
         }
-        // If the reduced search was better than expected, it might be a good move. Re-search at full depth.
-        if (score > alpha) {
-            score = -negamax(board, depth - 1, ply + 1, -beta, -alpha);
-        }
+        // --- END PVS ---
 
         board.unmake_move(move);
 
@@ -122,16 +120,16 @@ int64_t Search::negamax(Board& board, int depth, int ply, int64_t alpha, int64_t
             return beta; 
         }
         if (score > alpha) {
-            best_move = move;
+            best_move = move; // This is our new best move in this node
             alpha = score; 
         }
     }
     
     if (legal_moves_found == 0) {
-        // checkmate + ply to favor checkmates found with least amount of moves
-        entry = { board.zobrist_key, (int8_t)MAX_PLY, board.checks ? CHECKMATE_EVAL + ply : DRAW_EVAL, TTEntry::EXACT, {} };
+        int64_t final_score = board.checks ? (CHECKMATE_EVAL + ply) : DRAW_EVAL;
+        entry = { board.zobrist_key, (int8_t)MAX_PLY, final_score, TTEntry::EXACT, {} };
         TT.store(entry);
-        return board.checks ? CHECKMATE_EVAL + ply : DRAW_EVAL;
+        return final_score;
     }
     
     TTEntry::Bound bound = (alpha <= og_alpha) ? TTEntry::UPPER_BOUND : TTEntry::EXACT;
