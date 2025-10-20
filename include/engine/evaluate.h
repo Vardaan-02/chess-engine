@@ -82,6 +82,26 @@ constexpr EvalData eval_data = {
         {0, 0}      // KING (material value is infinite/not counted)
     }},
 
+    // .material_values = {{
+    // {0, 0},   // NO_PIECE_TYPE
+    // {80, 100},   // PAWN
+    // {400, 420},   // KNIGHT
+    // {450, 480},   // BISHOP
+    // {600, 650},   // ROOK
+    // {1100, 1200},  // QUEEN
+    // {0, 0}      // KING (material value is infinite/not counted)
+    // }},
+
+    // .material_values = {{
+    //     {0, 0},   // NO_PIECE_TYPE
+    //     {80, 100},   // PAWN
+    //     {400, 420},   // KNIGHT
+    //     {500, 530},   // BISHOP
+    //     {1200, 1300},   // ROOK
+    //     {2500, 2600},  // QUEEN
+    //     {0, 0}      // KING (material value is infinite/not counted)
+    // }},
+
     // 2. Piece-Square Tables (PSTs)
     .psts = {{
         // No Piece PST
