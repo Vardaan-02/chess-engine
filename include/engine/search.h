@@ -32,7 +32,7 @@ public:
     chess::Move start_search(Board& board, int depth, int movetime, int wtime, int btime, int winc, int binc);
 
     // Publicly accessible search statistics
-    uint64_t nodes_searched;
+    std::atomic<uint64_t> nodes_searched;
     chess::Move killer_moves[MAX_PLY][2];
     chess::Move pv_table[MAX_PLY][MAX_PLY];
     int history_scores[15][64]{}; // [piece][dest_sq]
@@ -69,6 +69,13 @@ private:
      * @param board The board state to evaluate.
      * @return The score in centipawns. Positive is good for the current player.
      */
+
+    static void pawn_evaluation(const Board& b, int& mg_score, int& eg_score);
+    static void knight_evaluation(const Board& b, int& mg_score, int& eg_score);
+    static void bishop_evaluation(const Board& b, int& mg_score, int& eg_score);
+    static void rook_evaluation(const Board& b, int& mg_score, int& eg_score);
+    static void queen_evaluation(const Board& b, int& mg_score, int& eg_score);
+    static void king_evaluation(const Board& b, int& mg_score, int& eg_score);
 
     inline void update_killers(int ply, const chess::Move& move) {
         if (killer_moves[ply][0].m != move.m) {

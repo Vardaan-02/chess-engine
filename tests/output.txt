@@ -1,68 +1,289 @@
-Running engine tests...
-----------------------------------------------------------
-FEN: r1bqkbnr/p1pp1ppp/1p6/4p3/2B1P3/5Q2/PPPP1PPP/RNB1K1NR w KQkq - 2 4
+========== CHESS ENGINE SEARCH & EVALUATION TEST SUITE ==========
+
+==================================================
+          Mate in 2 Puzzles
+==================================================
+
+--- Test: M2 Puzzle #1 ---
+    FEN: 1k1r4/pp1b1R2/3Q2p1/2p5/2B5/8/PPP2B2/2K5 w - - 1 1
+    Searching to depth: 4
+    Expected Evaluation: #2
+
 
     +------------------------+
- 8 | r . b q k b n r |
- 7 | p . p p . p p p |
- 6 | . p . . . . . . |
- 5 | . . . . p . . . |
- 4 | . . B . P . . . |
- 3 | . . . . . Q . . |
- 2 | P P P P . P P P |
- 1 | R N B . K . N R |
+ 8 | . k . r . . . . |
+ 7 | p p . b . R . . |
+ 6 | . . . Q . . p . |
+ 5 | . . p . . . . . |
+ 4 | . . B . . . . . |
+ 3 | . . . . . . . . |
+ 2 | P P P . . B . . |
+ 1 | . . K . . . . . |
     +------------------------+
       a b c d e f g h
 
 Side to move: White
-Castling rights: KQkq
+Castling rights: -
 En passant: -
-Halfmove clock: 2
-Fullmove number: 4
-Zobrist key: 0xfa1e2a4d50960115
+Halfmove clock: 1
+Fullmove number: 1
+Zobrist key: 0x850076f2d016c761
+Game Phase: 11
 Material (W/B): 0 / 0
 
-Depth: 2, Expected: f3f7, Found: f3f7
-Time: 0.000201s, Nodes: 877, NPS: 4356486
-Result: PASSED ✅
-----------------------------------------------------------
-FEN: 6k1/3br3/1p1p2p1/p1pP4/PPPb2r1/3B4/8/3R1K2 b - - 0 49
+    Engine thinking...
+info depth 1 evaluation 16.5 nodes 584 pv d6d7
+info depth 2 evaluation 16.89 nodes 2847 pv a2a3
+info depth 3 evaluation 100000 nodes 26380 pv f7d7
+info depth 4 evaluation 100000 nodes 270944 pv f7d7
+info depth 5 evaluation 100000 nodes 1881230 pv f7d7
+info depth 6 evaluation 100000 nodes 17963725 pv f7d7
+info depth 7 evaluation 100000 nodes 17830515 pv f7d7
+Evaluation 100000 Nodes 17830515 NPS 2228814 pv f7d7
+
+    --- Search Complete ---
+    Best move found: f7d7
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M2 Puzzle #2 ---
+    FEN: 3r1k2/4npp1/1p5p/p1p2N2/2P5/1P6/P4PPP/4R1K1 w - - 0 1
+    Searching to depth: 4
+    Expected Evaluation: #2
+
 
     +------------------------+
- 8 | . . . . . . k . |
- 7 | . . . b r . . . |
- 6 | . p . p . . p . |
- 5 | p . p P . . . . |
- 4 | P P P b . . r . |
- 3 | . . . B . . . . |
- 2 | . . . . . . . . |
- 1 | . . . R . K . . |
+ 8 | . . . r . k . . |
+ 7 | . . . . n p p . |
+ 6 | . p . . . . . p |
+ 5 | p . p . . N . . |
+ 4 | . . P . . . . . |
+ 3 | . P . . . . . . |
+ 2 | P . . . . P P P |
+ 1 | . . . . R . K . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 0
+Fullmove number: 1
+Zobrist key: 0xae62598264640d92
+Game Phase: 6
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -2.03 nodes 96 pv f2f3
+info depth 2 evaluation 0 nodes 701 pv g2g4
+info depth 3 evaluation 0.53 nodes 2189 pv f5e3
+info depth 4 evaluation 0.84 nodes 9176 pv f5g3
+info depth 5 evaluation 0.53 nodes 43406 pv f5e3
+info depth 6 evaluation 2.18 nodes 180538 pv f5e7
+info depth 7 evaluation 1.76 nodes 320921 pv f5e7
+info depth 8 evaluation 1.52 nodes 900500 pv f5e7
+info depth 9 evaluation 1.2 nodes 4826983 pv f5e7
+info depth 10 evaluation 1.28 nodes 13542156 pv f5e7
+Evaluation 1.28 Nodes 4894720 NPS 611840 pv f5e7
+
+    --- Search Complete ---
+    Best move found: f5e7
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M2 Puzzle #3 ---
+    FEN: 2r1r3/pp1k2pp/8/2bN4/8/8/PPP2PPP/2KRR3 w - - 0 1
+    Searching to depth: 4
+    Expected Evaluation: #2
+
+
+    +------------------------+
+ 8 | . . r . r . . . |
+ 7 | p p . k . . p p |
+ 6 | . . . . . . . . |
+ 5 | . . b N . . . . |
+ 4 | . . . . . . . . |
+ 3 | . . . . . . . . |
+ 2 | P P P . . P P P |
+ 1 | . . K R R . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 0
+Fullmove number: 1
+Zobrist key: 0x67d941696714bdfa
+Game Phase: 10
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation 2.83 nodes 189 pv c2c3
+info depth 2 evaluation 3.27 nodes 1012 pv f2f3
+info depth 3 evaluation 4.22 nodes 8369 pv f2f4
+info depth 4 evaluation 3.2 nodes 37224 pv f2f3
+info depth 5 evaluation 3.51 nodes 192028 pv f2f4
+info depth 6 evaluation 3.21 nodes 893981 pv f2f3
+info depth 7 evaluation 7.15 nodes 4112057 pv d5b6
+info depth 8 evaluation 7.34 nodes 19689888 pv d5f6
+Evaluation 7.34 Nodes 19689888 NPS 2461236 pv d5f6
+
+    --- Search Complete ---
+    Best move found: d5f6
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M2 Puzzle #4 ---
+    FEN: r1bqk2r/pp2bppp/2p5/3pP3/P2Q1P2/2N1B3/1PP3PP/R4RK1 b kq - 0 13
+    Searching to depth: 4
+    Expected Evaluation: #2
+
+
+    +------------------------+
+ 8 | r . b q k . . r |
+ 7 | p p . . b p p p |
+ 6 | . . p . . . . . |
+ 5 | . . . p P . . . |
+ 4 | P . . Q . P . . |
+ 3 | . . N . B . . . |
+ 2 | . P P . . . P P |
+ 1 | R . . . . R K . |
     +------------------------+
       a b c d e f g h
 
 Side to move: Black
+Castling rights: kq
+En passant: -
+Halfmove clock: 0
+Fullmove number: 13
+Zobrist key: 0xd2022d8f279eceda
+Game Phase: 20
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -1.41 nodes 243 pv a7a6
+info depth 2 evaluation -1.84 nodes 1846 pv g7g5
+info depth 3 evaluation -1.33 nodes 13785 pv a7a6
+info depth 4 evaluation -1.33 nodes 71385 pv g7g6
+info depth 5 evaluation -1.17 nodes 337958 pv b7b6
+info depth 6 evaluation -1.33 nodes 1767717 pv d8d7
+info depth 7 evaluation -0.96 nodes 8921549 pv b7b6
+Evaluation -0.96 Nodes 4775937 NPS 596992 pv b7b6
+
+    --- Search Complete ---
+    Best move found: b7b6
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M2 Puzzle #5 ---
+    FEN: 1R6/1brk2p1/p2p1p1p/P2PpP2/4P1P1/4K3/7P/8 w - - 15 53
+    Searching to depth: 4
+    Expected Evaluation: #2
+
+
+    +------------------------+
+ 8 | . R . . . . . . |
+ 7 | . b r k . . p . |
+ 6 | p . . p . p . p |
+ 5 | P . . P p P . . |
+ 4 | . . . . P . P . |
+ 3 | . . . . K . . . |
+ 2 | . . . . . . . P |
+ 1 | . . . . . . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 15
+Fullmove number: 53
+Zobrist key: 0xf65976aa11f53e18
+Game Phase: 5
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -2.09 nodes 51 pv e3e2
+info depth 2 evaluation -3.78 nodes 564 pv h2h3
+info depth 3 evaluation -3.79 nodes 2339 pv g4g5
+info depth 4 evaluation -4.24 nodes 10767 pv h2h3
+info depth 5 evaluation -4.16 nodes 45623 pv b8f8
+info depth 6 evaluation -3.59 nodes 82117 pv g4g5
+info depth 7 evaluation -1.75 nodes 393916 pv b8g8
+info depth 8 evaluation -2.01 nodes 488673 pv b8g8
+info depth 9 evaluation -2.18 nodes 1664542 pv b8g8
+info depth 10 evaluation -2.08 nodes 5332863 pv b8g8
+Evaluation -2.08 Nodes 5867788 NPS 733473 pv b8g8
+
+    --- Search Complete ---
+    Best move found: b8g8
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M2 Puzzle #6 ---
+    FEN: 8/6pk/p1p4p/1p5r/1P1R4/P3q2P/6P1/3Q3K w - - 0 42
+    Searching to depth: 4
+    Expected Evaluation: #2
+
+
+    +------------------------+
+ 8 | . . . . . . . . |
+ 7 | . . . . . . p k |
+ 6 | p . p . . . . p |
+ 5 | . p . . . . . r |
+ 4 | . P . R . . . . |
+ 3 | P . . . q . . P |
+ 2 | . . . . . . P . |
+ 1 | . . . Q . . . K |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
 Castling rights: -
 En passant: -
 Halfmove clock: 0
-Fullmove number: 49
-Zobrist key: 0xc5ebcb914a0e2b41
+Fullmove number: 42
+Zobrist key: 0x27a3384d6b542b21
+Game Phase: 12
 Material (W/B): 0 / 0
 
-Depth: 2, Expected: g4g1, Found: g4g1
-Time: 0.000072s, Nodes: 1209, NPS: 16796098
-Result: PASSED ✅
-----------------------------------------------------------
-FEN: 6k1/3b4/1p1p2p1/p1pPbr2/P1P3K1/1P6/4r3/3R4 b - - 1 51
+    Engine thinking...
+info depth 1 evaluation -4.46 nodes 268 pv a3a4
+info depth 2 evaluation -3.74 nodes 1782 pv h3h4
+info depth 3 evaluation -0.24 nodes 8603 pv d1b1
+info depth 4 evaluation 0.21 nodes 20660 pv d1c2
+info depth 5 evaluation 0.99 nodes 52457 pv d1c2
+info depth 6 evaluation 0.21 nodes 242573 pv d1c2
+info depth 7 evaluation 0.15 nodes 1083288 pv d1c2
+info depth 8 evaluation 0.05 nodes 4874880 pv d1c2
+Evaluation 0.05 Nodes 5476352 NPS 684544 pv d1c2
+
+    --- Search Complete ---
+    Best move found: d1c2
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+
+==================================================
+          Mate in 3 Puzzles
+==================================================
+
+--- Test: M3 Puzzle #1 ---
+    FEN: r5k1/pp1b1p1p/3p1Np1/q1p5/2PnP3/3B4/PP4PP/R2Q2K1 b - - 1 18
+    Searching to depth: 6
+    Expected Evaluation: #3
+
 
     +------------------------+
- 8 | . . . . . . k . |
- 7 | . . . b . . . . |
- 6 | . p . p . . p . |
- 5 | p . p P b r . . |
- 4 | P . P . . . K . |
- 3 | . P . . . . . . |
- 2 | . . . . r . . . |
- 1 | . . . R . . . . |
+ 8 | r . . . . . k . |
+ 7 | p p . b . p . p |
+ 6 | . . . p . N p . |
+ 5 | q . p . . . . . |
+ 4 | . . P n P . . . |
+ 3 | . . . B . . . . |
+ 2 | P P . . . . P P |
+ 1 | R . . Q . . K . |
     +------------------------+
       a b c d e f g h
 
@@ -70,50 +291,601 @@ Side to move: Black
 Castling rights: -
 En passant: -
 Halfmove clock: 1
-Fullmove number: 51
-Zobrist key: 0xc6a344ceb431167
+Fullmove number: 18
+Zobrist key: 0x2981e2bff8521e29
+Game Phase: 16
 Material (W/B): 0 / 0
 
-Depth: 8, Expected: e2f2, Found: e2f2
-Time: 1.025736s, Nodes: 5155211, NPS: 5025864
-Result: PASSED ✅
-----------------------------------------------------------
-FEN: rnbqkb1r/pppp1ppp/8/3np3/4P3/5P2/PPPP2PP/RNBQKBNR w KQ - 0 1
+    Engine thinking...
+info depth 1 evaluation 0.92 nodes 18 pv g8g7
+info depth 2 evaluation 0.93 nodes 170 pv g8h8
+info depth 3 evaluation 1.72 nodes 418 pv g8h8
+info depth 4 evaluation 1.08 nodes 9050 pv g8g7
+info depth 5 evaluation 1.73 nodes 61944 pv g8f8
+info depth 6 evaluation 2.45 nodes 420244 pv g8g7
+info depth 7 evaluation 2.45 nodes 701466 pv g8g7
+info depth 8 evaluation 2.43 nodes 4035823 pv g8g7
+Evaluation 2.43 Nodes 4454401 NPS 556800 pv g8g7
+
+    --- Search Complete ---
+    Best move found: g8g7
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M3 Puzzle #2 ---
+    FEN: 1r2k2r/p4p1p/2p2p2/4p3/q7/2Q5/PP3PPP/1K1R3R w k - 0 19
+    Searching to depth: 6
+    Expected Evaluation: #3
+
 
     +------------------------+
- 8 | r n b q k b . r |
- 7 | p p p p . p p p |
- 6 | . . . . . . . . |
- 5 | . . . n p . . . |
- 4 | . . . . P . . . |
- 3 | . . . . . P . . |
- 2 | P P P P . . P P |
- 1 | R N B Q K B N R |
+ 8 | . r . . k . . r |
+ 7 | p . . . . p . p |
+ 6 | . . p . . p . . |
+ 5 | . . . . p . . . |
+ 4 | q . . . . . . . |
+ 3 | . . Q . . . . . |
+ 2 | P P . . . P P P |
+ 1 | . K . R . . . R |
     +------------------------+
       a b c d e f g h
 
 Side to move: White
-Castling rights: KQ
+Castling rights: k
 En passant: -
 Halfmove clock: 0
-Fullmove number: 1
-Zobrist key: 0x1077f2255ec2b922
+Fullmove number: 19
+Zobrist key: 0x40d35f178a05580f
+Game Phase: 16
 Material (W/B): 0 / 0
 
-Depth: 2, Expected: e4d5, Found: e4d5
-Time: 0.000045s, Nodes: 5155383, NPS: 113487199242
-Result: PASSED ✅
-----------------------------------------------------------
-FEN: 8/5ppp/1P5k/8/8/6P1/5PKP/8 w - - 0 1
+    Engine thinking...
+info depth 1 evaluation 0.2 nodes 322 pv b2b3
+info depth 2 evaluation -0.75 nodes 1557 pv h1e1
+info depth 3 evaluation -0.09 nodes 7312 pv h1e1
+info depth 4 evaluation -0.09 nodes 31280 pv h1e1
+info depth 5 evaluation 0.1 nodes 170927 pv h1e1
+info depth 6 evaluation -0.03 nodes 945629 pv h1e1
+info depth 7 evaluation -0.3 nodes 7634072 pv h1e1
+info depth 8 evaluation 0 nodes 20986323 pv b2b3
+Evaluation 0 Nodes 20986323 NPS 2623290 pv b2b3
+
+    --- Search Complete ---
+    Best move found: b2b3
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M3 Puzzle #3 ---
+    FEN: 8/2p3N1/pk1p4/1p2p3/4P3/2P5/PP1K4/8 w - - 2 46
+    Searching to depth: 6
+    Expected Evaluation: #3
+
 
     +------------------------+
  8 | . . . . . . . . |
- 7 | . . . . . p p p |
- 6 | . P . . . . . k |
+ 7 | . . p . . . N . |
+ 6 | p k . p . . . . |
+ 5 | . p . . p . . . |
+ 4 | . . . . P . . . |
+ 3 | . . P . . . . . |
+ 2 | P P . K . . . . |
+ 1 | . . . . . . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 2
+Fullmove number: 46
+Zobrist key: 0x6055300899f34b83
+Game Phase: 1
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation 2.98 nodes 34 pv g7f5
+info depth 2 evaluation 2.89 nodes 115 pv g7f5
+info depth 3 evaluation 2.94 nodes 725 pv g7f5
+info depth 4 evaluation 2.61 nodes 1844 pv g7f5
+info depth 5 evaluation 2.61 nodes 8540 pv g7f5
+info depth 6 evaluation 2.63 nodes 24340 pv g7f5
+info depth 7 evaluation 2.7 nodes 138176 pv g7f5
+info depth 8 evaluation 2.54 nodes 352415 pv g7f5
+info depth 9 evaluation 2.57 nodes 2450891 pv d2d3
+info depth 10 evaluation 2.65 nodes 8199771 pv g7f5
+Evaluation 2.65 Nodes 7731274 NPS 966409 pv g7f5
+
+    --- Search Complete ---
+    Best move found: g7f5
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M3 Puzzle #4 ---
+    FEN: 4r1k1/pp3p1p/2p3p1/4b3/3P4/BqP2N2/3R1PPP/6K1 w - - 0 28
+    Searching to depth: 6
+    Expected Evaluation: #3
+
+
+    +------------------------+
+ 8 | . . . . r . k . |
+ 7 | p p . . . p . p |
+ 6 | . . p . . . p . |
+ 5 | . . . . b . . . |
+ 4 | . . . P . . . . |
+ 3 | B q P . . N . . |
+ 2 | . . . R . P P P |
+ 1 | . . . . . . K . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 0
+Fullmove number: 28
+Zobrist key: 0x125c118ca172c729
+Game Phase: 11
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -8.42 nodes 62 pv d4e5
+info depth 2 evaluation -8.42 nodes 309 pv d4e5
+info depth 3 evaluation -12.02 nodes 8674 pv g2g3
+info depth 4 evaluation -11.72 nodes 20453 pv a3c1
+info depth 5 evaluation -12.69 nodes 107716 pv g2g3
+info depth 6 evaluation -12.69 nodes 183446 pv g2g3
+info depth 7 evaluation -12.69 nodes 666184 pv g2g3
+info depth 8 evaluation -13.31 nodes 3977952 pv g2g3
+Evaluation -13.31 Nodes 6303747 NPS 787968 pv g2g3
+
+    --- Search Complete ---
+    Best move found: g2g3
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M3 Puzzle #5 ---
+    FEN: r1b1r1k1/1pp2pp1/p1n1p2p/8/2B1N3/4P3/Pq3PPP/2RQR1K1 w - - 2 18
+    Searching to depth: 6
+    Expected Evaluation: #3
+
+
+    +------------------------+
+ 8 | r . b . r . k . |
+ 7 | . p p . . p p . |
+ 6 | p . n . p . . p |
+ 5 | . . . . . . . . |
+ 4 | . . B . N . . . |
+ 3 | . . . . P . . . |
+ 2 | P q . . . P P P |
+ 1 | . . R Q R . K . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 2
+Fullmove number: 18
+Zobrist key: 0x2ddaea1ac396e5f6
+Game Phase: 20
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -2.47 nodes 338 pv f2f3
+info depth 2 evaluation -3.73 nodes 2560 pv e4c5
+info depth 3 evaluation -2.94 nodes 11877 pv f2f3
+info depth 4 evaluation -2.05 nodes 93863 pv f2f4
+info depth 5 evaluation -1.8 nodes 310749 pv f2f3
+info depth 6 evaluation -2.05 nodes 2333984 pv f2f4
+info depth 7 evaluation -1.43 nodes 13911670 pv c1b1
+info depth 8 evaluation 0 nodes 8362460 pv a2a3
+Evaluation 0 Nodes 8362460 NPS 1045307 pv a2a3
+
+    --- Search Complete ---
+    Best move found: a2a3
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M3 Puzzle #6 ---
+    FEN: 3k4/1p6/p1p5/P2p3K/1P1P4/8/8/8 w - - 1 60
+    Searching to depth: 6
+    Expected Evaluation: #3
+
+
+    +------------------------+
+ 8 | . . . k . . . . |
+ 7 | . p . . . . . . |
+ 6 | p . p . . . . . |
+ 5 | P . . p . . . K |
+ 4 | . P . P . . . . |
+ 3 | . . . . . . . . |
+ 2 | . . . . . . . . |
+ 1 | . . . . . . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 1
+Fullmove number: 60
+Zobrist key: 0xd0fa6522384b9362
+Game Phase: 0
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -2.53 nodes 16 pv h5g4
+info depth 2 evaluation -2.81 nodes 60 pv h5g4
+info depth 3 evaluation -2.7 nodes 147 pv h5g4
+info depth 4 evaluation -2.7 nodes 783 pv h5g4
+info depth 5 evaluation -2.47 nodes 1153 pv h5g4
+info depth 6 evaluation -2.5 nodes 2986 pv h5g4
+info depth 7 evaluation -2.47 nodes 12715 pv h5g4
+info depth 8 evaluation -2.5 nodes 48185 pv h5g4
+info depth 9 evaluation -2.38 nodes 98370 pv h5g4
+info depth 10 evaluation -2.38 nodes 179871 pv h5g4
+info depth 11 evaluation -2.38 nodes 518213 pv h5g4
+info depth 12 evaluation -2.38 nodes 1725043 pv h5g4
+info depth 13 evaluation -2.38 nodes 4348259 pv h5g4
+info depth 14 evaluation -2.38 nodes 10908743 pv h5g4
+Evaluation -2.38 Nodes 1188823 NPS 148602 pv h5g4
+
+    --- Search Complete ---
+    Best move found: h5g4
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+
+==================================================
+          Mate in 4 Puzzles
+==================================================
+
+--- Test: M4 Puzzle #1 ---
+    FEN: 7k/p7/1p6/8/P7/8/r7/5R1K w - - 1 54
+    Searching to depth: 8
+    Expected Evaluation: #4
+
+
+    +------------------------+
+ 8 | . . . . . . . k |
+ 7 | p . . . . . . . |
+ 6 | . p . . . . . . |
+ 5 | . . . . . . . . |
+ 4 | P . . . . . . . |
+ 3 | . . . . . . . . |
+ 2 | r . . . . . . . |
+ 1 | . . . . . R . K |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 1
+Fullmove number: 54
+Zobrist key: 0x9d745eb7b880a0a9
+Game Phase: 4
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -4.01 nodes 53 pv f1b1
+info depth 2 evaluation -3.77 nodes 446 pv f1c1
+info depth 3 evaluation -2.43 nodes 1500 pv f1f4
+info depth 4 evaluation -2.77 nodes 9317 pv a4a5
+info depth 5 evaluation -2.59 nodes 30246 pv f1c1
+info depth 6 evaluation -3.07 nodes 106954 pv f1f3
+info depth 7 evaluation -3.75 nodes 662820 pv f1c1
+info depth 8 evaluation -2.69 nodes 2976516 pv f1f4
+info depth 9 evaluation -2.77 nodes 2736191 pv f1f4
+info depth 10 evaluation -2.75 nodes 10278573 pv f1f4
+Evaluation -2.75 Nodes 929792 NPS 116224 pv f1f4
+
+    --- Search Complete ---
+    Best move found: f1f4
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M4 Puzzle #2 ---
+    FEN: 8/8/k1p5/1p6/pP6/P7/K7/8 w - - 2 64
+    Searching to depth: 8
+    Expected Evaluation: #4
+
+
+    +------------------------+
+ 8 | . . . . . . . . |
+ 7 | . . . . . . . . |
+ 6 | k . p . . . . . |
+ 5 | . p . . . . . . |
+ 4 | p P . . . . . . |
+ 3 | P . . . . . . . |
+ 2 | K . . . . . . . |
+ 1 | . . . . . . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 2
+Fullmove number: 64
+Zobrist key: 0x1f27b91fbe5d0e6b
+Game Phase: 0
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -2.23 nodes 8 pv a2b1
+info depth 2 evaluation -2.2 nodes 34 pv a2b2
+info depth 3 evaluation -2.14 nodes 55 pv a2b2
+info depth 4 evaluation -2.14 nodes 181 pv a2b2
+info depth 5 evaluation -2.28 nodes 525 pv a2b2
+info depth 6 evaluation -2.26 nodes 971 pv a2b2
+info depth 7 evaluation -2.22 nodes 3412 pv a2b2
+info depth 8 evaluation -2.41 nodes 6946 pv a2b2
+info depth 9 evaluation -2.41 nodes 14310 pv a2b2
+info depth 10 evaluation -2.41 nodes 34941 pv a2b2
+info depth 11 evaluation -3.11 nodes 87005 pv a2b2
+info depth 12 evaluation -3.11 nodes 235182 pv a2b2
+info depth 13 evaluation -3.6 nodes 601450 pv a2b2
+info depth 14 evaluation -3.57 nodes 1709120 pv a2b2
+info depth 15 evaluation -3.6 nodes 4577232 pv a2b2
+info depth 16 evaluation 0 nodes 9478144 pv a2a1
+Evaluation 0 Nodes 9478144 NPS 1184768 pv a2a1
+
+    --- Search Complete ---
+    Best move found: a2a1
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M4 Puzzle #3 ---
+    FEN: k7/8/8/8/8/3R4/p7/7K w - - 0 85
+    Searching to depth: 8
+    Expected Evaluation: #4
+
+
+    +------------------------+
+ 8 | k . . . . . . . |
+ 7 | . . . . . . . . |
+ 6 | . . . . . . . . |
  5 | . . . . . . . . |
  4 | . . . . . . . . |
- 3 | . . . . . . P . |
- 2 | . . . . . P K P |
+ 3 | . . . R . . . . |
+ 2 | p . . . . . . . |
+ 1 | . . . . . . . K |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 0
+Fullmove number: 85
+Zobrist key: 0x4b18208e83667cc8
+Game Phase: 2
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation 3 nodes 42 pv d3d2
+info depth 2 evaluation 2.64 nodes 305 pv d3d1
+info depth 3 evaluation 7.54 nodes 1140 pv d3a3
+info depth 4 evaluation 8.3 nodes 2664 pv d3a3
+info depth 5 evaluation 8.13 nodes 10441 pv d3a3
+info depth 6 evaluation 8.19 nodes 45736 pv d3a3
+info depth 7 evaluation 8.34 nodes 185860 pv d3a3
+info depth 8 evaluation 8.56 nodes 857869 pv d3a3
+info depth 9 evaluation 8.56 nodes 3752236 pv d3a3
+info depth 10 evaluation 8.77 nodes 15524016 pv d3a3
+Evaluation 8.77 Nodes 4964352 NPS 620544 pv d3a3
+
+    --- Search Complete ---
+    Best move found: d3a3
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M4 Puzzle #4 ---
+    FEN: 5r1k/p2Q4/1p1P2p1/4b2p/1P2Pq2/P5P1/5R1P/6K1 b - - 0 46
+    Searching to depth: 8
+    Expected Evaluation: #4
+
+
+    +------------------------+
+ 8 | . . . . . r . k |
+ 7 | p . . Q . . . . |
+ 6 | . p . P . . p . |
+ 5 | . . . . b . . p |
+ 4 | . P . . P q . . |
+ 3 | P . . . . . P . |
+ 2 | . . . . . R . P |
+ 1 | . . . . . . K . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: Black
+Castling rights: -
+En passant: -
+Halfmove clock: 0
+Fullmove number: 46
+Zobrist key: 0x581a8a897a83c83f
+Game Phase: 13
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation -7.86 nodes 613 pv b6b5
+info depth 2 evaluation 100000 nodes 1275 pv f4f2
+info depth 3 evaluation 100000 nodes 2808 pv f4f2
+info depth 4 evaluation 100000 nodes 13811 pv f4f2
+info depth 5 evaluation 100000 nodes 80210 pv f4f2
+info depth 6 evaluation 100000 nodes 461314 pv f4f2
+info depth 7 evaluation 100000 nodes 2720006 pv f4f2
+Evaluation 100000 Nodes 8838001 NPS 1104750 pv f4f2
+
+    --- Search Complete ---
+    Best move found: f4f2
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M4 Puzzle #5 ---
+    FEN: 8/2p5/8/kp6/1p2N3/pP6/P1K5/8 w - - 10 57
+    Searching to depth: 8
+    Expected Evaluation: #4
+
+
+    +------------------------+
+ 8 | . . . . . . . . |
+ 7 | . . p . . . . . |
+ 6 | . . . . . . . . |
+ 5 | k p . . . . . . |
+ 4 | . p . . N . . . |
+ 3 | p P . . . . . . |
+ 2 | P . K . . . . . |
+ 1 | . . . . . . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 10
+Fullmove number: 57
+Zobrist key: 0x5f0218ba128d8288
+Game Phase: 1
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation 0.81 nodes 31 pv e4f2
+info depth 2 evaluation 0.74 nodes 111 pv e4g3
+info depth 3 evaluation 1.26 nodes 557 pv e4c5
+info depth 4 evaluation 1.34 nodes 1053 pv e4f6
+info depth 5 evaluation 1.17 nodes 5573 pv e4c5
+info depth 6 evaluation 1.36 nodes 15552 pv c2d3
+info depth 7 evaluation 1.31 nodes 37741 pv c2d3
+info depth 8 evaluation 1.38 nodes 89860 pv c2d3
+info depth 9 evaluation 1.65 nodes 504510 pv e4f6
+info depth 10 evaluation 1.5 nodes 1135811 pv e4f6
+info depth 11 evaluation 2.33 nodes 5857718 pv c2d3
+info depth 12 evaluation 2.72 nodes 9373603 pv c2d3
+Evaluation 2.72 Nodes 9209857 NPS 1151232 pv c2d3
+
+    --- Search Complete ---
+    Best move found: c2d3
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M4 Puzzle #6 ---
+    FEN: 1R3R2/6pk/1p5p/5p1P/5P2/4n3/8/6K1 w - - 3 52
+    Searching to depth: 8
+    Expected Evaluation: #4
+
+
+    +------------------------+
+ 8 | . R . . . R . . |
+ 7 | . . . . . . p k |
+ 6 | . p . . . . . p |
+ 5 | . . . . . p . P |
+ 4 | . . . . . P . . |
+ 3 | . . . . n . . . |
+ 2 | . . . . . . . . |
+ 1 | . . . . . . K . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 3
+Fullmove number: 52
+Zobrist key: 0x7597dbb612d5884a
+Game Phase: 5
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation 100000 nodes 34 pv f8h8
+info depth 2 evaluation 100000 nodes 78 pv f8h8
+info depth 3 evaluation 100000 nodes 666 pv f8h8
+info depth 4 evaluation 100000 nodes 1752 pv f8h8
+info depth 5 evaluation 100000 nodes 14508 pv f8h8
+info depth 6 evaluation 100000 nodes 45142 pv f8h8
+info depth 7 evaluation 100000 nodes 335485 pv f8h8
+info depth 8 evaluation 100000 nodes 1162728 pv f8h8
+info depth 9 evaluation 100000 nodes 7969742 pv f8h8
+info depth 10 evaluation 100000 nodes 29592145 pv f8h8
+Evaluation 100000 Nodes 29592145 NPS 3699018 pv f8h8
+
+    --- Search Complete ---
+    Best move found: f8h8
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+
+==================================================
+          Mate in 5 Puzzles
+==================================================
+
+--- Test: M5 Puzzle #1 ---
+    FEN: 8/8/8/8/k7/p1p1p3/P1P1P3/K7 w - - 0 54
+    Searching to depth: 10
+    Expected Evaluation: #5
+
+
+    +------------------------+
+ 8 | . . . . . . . . |
+ 7 | . . . . . . . . |
+ 6 | . . . . . . . . |
+ 5 | . . . . . . . . |
+ 4 | k . . . . . . . |
+ 3 | p . p . p . . . |
+ 2 | P . P . P . . . |
+ 1 | K . . . . . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 0
+Fullmove number: 54
+Zobrist key: 0xd057eed2739d2728
+Game Phase: 0
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation 2.08 nodes 2 pv a1b1
+info depth 2 evaluation 2.01 nodes 7 pv a1b1
+info depth 3 evaluation 1.79 nodes 12 pv a1b1
+info depth 4 evaluation 1.63 nodes 74 pv a1b1
+info depth 5 evaluation 2.11 nodes 77 pv a1b1
+info depth 6 evaluation 2.11 nodes 307 pv a1b1
+info depth 7 evaluation 1.83 nodes 396 pv a1b1
+info depth 8 evaluation 1.75 nodes 1732 pv a1b1
+info depth 9 evaluation 2.03 nodes 2385 pv a1b1
+info depth 10 evaluation 2.03 nodes 10656 pv a1b1
+info depth 11 evaluation 1.75 nodes 15177 pv a1b1
+info depth 12 evaluation 1.75 nodes 70836 pv a1b1
+info depth 13 evaluation 2.03 nodes 107825 pv a1b1
+info depth 14 evaluation 2.03 nodes 776968 pv a1b1
+info depth 15 evaluation 1.85 nodes 679739 pv a1b1
+info depth 16 evaluation 1.76 nodes 3154797 pv a1b1
+info depth 17 evaluation 2.03 nodes 4797613 pv a1b1
+Evaluation 2.03 Nodes 8077313 NPS 1009664 pv a1b1
+
+    --- Search Complete ---
+    Best move found: a1b1
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M5 Puzzle #2 ---
+    FEN: 1k6/1p6/p7/P7/8/8/1p1p2K1/8 w - - 0 59
+    Searching to depth: 10
+    Expected Evaluation: #5
+
+
+    +------------------------+
+ 8 | . k . . . . . . |
+ 7 | . p . . . . . . |
+ 6 | p . . . . . . . |
+ 5 | P . . . . . . . |
+ 4 | . . . . . . . . |
+ 3 | . . . . . . . . |
+ 2 | . p . p . . K . |
  1 | . . . . . . . . |
     +------------------------+
       a b c d e f g h
@@ -122,12 +894,69 @@ Side to move: White
 Castling rights: -
 En passant: -
 Halfmove clock: 0
-Fullmove number: 1
-Zobrist key: 0x9b4c7e2270232815
+Fullmove number: 59
+Zobrist key: 0xe50f7b89477a1c9c
+Game Phase: 0
 Material (W/B): 0 / 0
 
-Depth: 2, Expected: b6b7, Found: b6b7
-Time: 0.000015s, Nodes: 5155462, NPS: 346213283191
-Result: PASSED ✅
-----------------------------------------------------------
-Test run finished.
+    Engine thinking...
+info depth 1 evaluation -12.35 nodes 18 pv g2f2
+info depth 2 evaluation -18.77 nodes 280 pv g2g1
+info depth 3 evaluation -18.62 nodes 790 pv g2f2
+info depth 4 evaluation -24.34 nodes 4009 pv g2h2
+info depth 5 evaluation -24.72 nodes 18816 pv g2f2
+info depth 6 evaluation -25.93 nodes 41236 pv g2f2
+info depth 7 evaluation -26.36 nodes 787414 pv g2g3
+info depth 8 evaluation -99999.9 nodes 3340430 pv g2g3
+info depth 9 evaluation -99999.9 nodes 6612374 pv g2g3
+Evaluation -99999.9 Nodes 6504642 NPS 813080 pv g2g3
+
+    --- Search Complete ---
+    Best move found: g2g3
+    Your Engine's final evaluation is the 'score mate' value in the last 'info' line above.
+    Compare this with the expected evaluation to gauge performance.
+
+--- Test: M5 Puzzle #3 ---
+    FEN: 8/k7/8/p1p5/P1P5/8/8/K7 w - - 2 73
+    Searching to depth: 10
+    Expected Evaluation: #5
+
+
+    +------------------------+
+ 8 | . . . . . . . . |
+ 7 | k . . . . . . . |
+ 6 | . . . . . . . . |
+ 5 | p . p . . . . . |
+ 4 | P . P . . . . . |
+ 3 | . . . . . . . . |
+ 2 | . . . . . . . . |
+ 1 | K . . . . . . . |
+    +------------------------+
+      a b c d e f g h
+
+Side to move: White
+Castling rights: -
+En passant: -
+Halfmove clock: 2
+Fullmove number: 73
+Zobrist key: 0xf9233e1a7785e601
+Game Phase: 0
+Material (W/B): 0 / 0
+
+    Engine thinking...
+info depth 1 evaluation 0.23 nodes 8 pv a1b2
+info depth 2 evaluation -0.06 nodes 17 pv a1b2
+info depth 3 evaluation 0 nodes 92 pv a1b2
+info depth 4 evaluation 0 nodes 255 pv a1b2
+info depth 5 evaluation 0.11 nodes 926 pv a1b2
+info depth 6 evaluation 0 nodes 1267 pv a1b2
+info depth 7 evaluation 0 nodes 3023 pv a1b2
+info depth 8 evaluation 0 nodes 6153 pv a1b2
+info depth 9 evaluation 0 nodes 14578 pv a1b2
+info depth 10 evaluation 0 nodes 35328 pv a1b2
+info depth 11 evaluation 0 nodes 111740 pv a1b2
+info depth 12 evaluation 0 nodes 267682 pv a1b2
+info depth 13 evaluation 0.09 nodes 984184 pv a1b2
+info depth 14 evaluation 0 nodes 1023319 pv a1b2
+info depth 15 evaluation 0 nodes 1826475 pv a1b2
+info depth 16 evaluation 0 nodes 4790783 pv a1b2

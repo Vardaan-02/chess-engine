@@ -1,28 +1,15 @@
-// Compile using: g++ -std=c++17 -I../include/chess -I../include -I../include/utils -o evaluation_test.out evaluation_test.cpp ../src/chess/*.cpp ../src/chess/movegen/*.cpp ../src/utils/threadpool.cpp ../src/engine/search.cpp ../src/engine/evaluate.cpp ../src/engine/search/*.cpp -O3 -march=native -flto -funroll-loops
+// Compile using: \
+                g++ -std=c++17 -I../include/chess -I../include -I../include/utils \
+                -o evaluation_test.out evaluation_test.cpp ../src/chess/*.cpp ../src/chess/movegen/*.cpp \
+                ../src/utils/*.cpp ../src/engine/*.cpp ../src/engine/evaluate/*.cpp ../src/engine/search/*.cpp \
+                -O3 -march=native -flto -funroll-loops
 
 #include <iostream>
 #include <vector>
 #include <string>
 #include "chess/board.h"
 #include "engine/search.h"
-
-// Helper function to run and display a single evaluation test
-void testEvaluate(std::string fen, const std::string& description) {
-    std::cout << "--- Test: " << description << " ---\n";
-    std::cout << "    FEN: " << fen << "\n";
-
-    try {
-        Board board;
-        board.set_fen(fen);
-        // The evaluation function in search.cpp calls get_score_from_white_perspective
-        int score = Search::evaluate(board); 
-        board.print_board();
-        std::cout << "    Evaluation Score: " << score << "\n";
-    } catch (const std::exception& e) {
-        std::cerr << "    Error evaluating position: " << e.what() << "\n";
-    }
-    std::cout << std::endl;
-}
+#include "chess/zobrist.h"
 
 // Helper to print section headers for better organization
 void printSectionHeader(const std::string& title) {
@@ -31,180 +18,132 @@ void printSectionHeader(const std::string& title) {
     std::cout << "==================================================\n\n";
 }
 
+/**
+ * @brief Runs a search on a given position to a specified depth and prints the results.
+ *
+ * @param search_agent The search object to use.
+ * @param fen The FEN string of the position to test.
+ * @param depth The depth to search to.
+ * @param description A description of the test case.
+ * @param stockfish_eval The benchmark evaluation from Stockfish.
+ */
+void testSearchAndEvaluate(Search& search_agent, std::string fen, int depth, const std::string& description, const std::string& stockfish_eval) {
+    std::cout << "--- Test: " << description << " ---\n";
+    std::cout << "    FEN: " << fen << "\n";
+    std::cout << "    Searching to depth: " << depth << "\n";
+    std::cout << "    Stockfish 16 (d=20) Evaluation: " << stockfish_eval << "\n\n";
+
+    Board board;
+    try {
+        board.set_fen(fen);
+        board.print_board();
+
+        // The start_search function will print "info" lines containing the score
+        // during its operation. We don't need to capture a return value for the score itself.
+        std::cout << "    Engine thinking...\n";
+        chess::Move best_move = search_agent.start_search(board, depth, 0, 0, 0, 0, 0);
+
+        std::string move_str = util::move_to_string(best_move);
+         if (best_move.flags() & chess::FLAG_PROMO) {
+            switch (chess::type_of((chess::Piece)best_move.promo())) {
+                case chess::QUEEN:  move_str += 'q'; break;
+                case chess::ROOK:   move_str += 'r'; break;
+                case chess::BISHOP: move_str += 'b'; break;
+                case chess::KNIGHT: move_str += 'n'; break;
+                default: break;
+            }
+        }
+
+        std::cout << "\n    --- Search Complete ---\n";
+        std::cout << "    Best move found: " << move_str << "\n";
+        std::cout << "    Your Engine's final evaluation is the 'score cp' value in the last 'info' line above.\n";
+        std::cout << "    Compare this with the Stockfish evaluation to gauge performance.\n";
+
+    } catch (const std::exception& e) {
+        std::cerr << "    Error during test: " << e.what() << "\n";
+    }
+    std::cout << std::endl;
+}
+
 int main() {
+    // --- One-time initialization ---
+    Zobrist::init_zobrist_keys(); 
     chess::init();
-    std::cout << "========== CHESS ENGINE EVALUATION TEST SUITE ==========\n";
-
-    // ##################################################################
-    // # 1. Sanity and Basic Symmetry Tests
-    // ##################################################################
-    printSectionHeader("Sanity and Symmetry Tests");
-
-    testEvaluate(
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        "Initial Position: Should be close to 0."
-    );
-    testEvaluate(
-        "r1bqkbnr/pp1ppppp/2n5/2p5/2P5/2N5/PP1PPPPP/R1BQKBNR w KQkq - 2 3",
-        "Symmetrical English Opening: Should be close to 0."
-    );
-
-    // ##################################################################
-    // # 2. Material Balance Tests
-    // ##################################################################
-    printSectionHeader("Material Balance Tests");
-
-    testEvaluate(
-        "rnb1kbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        "White is up a Queen: Should be a very large positive score."
-    );
-    testEvaluate(
-        "1nbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        "White is up a Rook: Should be a large positive score."
-    );
-     testEvaluate(
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBN1 b KQkq - 1 1",
-        "Black is up a Rook: Should be a large negative score."
-    );
-    testEvaluate(
-        "rnbqkb1r/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
-        "White is up a Knight: Should be a positive score."
-    );
-    testEvaluate(
-        "rnbqkbnr/pppppppp/8/8/8/8/PPPP1PPP/RNBQKBNR w KQkq - 0 1",
-        "black is up a Pawn: Should be a negetive score (around 100 centipawns)."
-    );
-
-    // ##################################################################
-    // # 3. Piece-Square Table (PST) Tests
-    // ##################################################################
-    printSectionHeader("Piece-Square Table (PST) Tests");
+    Search search_agent(512); // Create a single search agent to use for all tests
     
-    testEvaluate(
-        "8/k7/8/3N4/8/8/K7/n7 w - - 0 1",
-        "Centralized White Knight: Score should be positive from PST."
-    );
-    testEvaluate(
-        "N7/K7/8/8/8/8/k7/8 w - - 0 1",
-        "White Knight on the Rim ('a' file): Should be penalized by PST."
-    );
-    testEvaluate(
-        "k7/6b1/8/8/8/8/8/K7 b - - 0 1",
-        "Black Bishop on long diagonal: Should be a good score for black (negative total)."
-    );
-    testEvaluate(
-        "8/8/8/8/8/3K4/8/k7 w - - 0 1",
-        "Active King in Endgame: White king is centralized, should give an advantage."
+    std::cout << "========== CHESS ENGINE SEARCH & EVALUATION TEST SUITE ==========\n";
+
+    // --- Original Test Cases ---
+    
+    printSectionHeader("Opening Position");
+    testSearchAndEvaluate(
+        search_agent,
+        "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1",
+        12, // Search depth
+        "Initial Position",
+        "+0.2"
     );
 
-    // ##################################################################
-    // # 4. Pawn Structure Tests
-    // ##################################################################
-    printSectionHeader("Pawn Structure Tests");
-
-    // Note: Your current engine doesn't explicitly evaluate these.
-    // When you add these features, these tests will become useful.
-    testEvaluate(
-        "8/kppp2pp/8/8/8/K5P1/PPPP4/8 w - - 0 1",
-        "Isolated Pawns (g3 for White): Result in penalties for white."
-    );
-    testEvaluate(
-        "8/kppp4/8/8/8/K1P5/2PP4/8 w - - 0 1",
-        "Doubled Pawns (c2, c3 for White): Should be a penalty for White."
-    );
-    testEvaluate(
-        "8/1ppp3P/k7/8/8/K7/8/8 w - - 0 1",
-        "Passed Pawn (g7 for White): Should be a massive advantage for White."
+    printSectionHeader("Tactical Position (White to move)");
+    testSearchAndEvaluate(
+        search_agent,
+        "r1bqkbnr/ppp2ppp/2np4/4p3/2B1P3/5N2/PPPP1PPP/RNBQK2R w KQkq - 0 4",
+        12, // Search depth
+        "Italian Game - White has a slight advantage",
+        "+0.4"
     );
 
-    // ##################################################################
-    // # 5. King Safety Tests
-    // ##################################################################
-    printSectionHeader("King Safety Tests");
-
-    testEvaluate(
-        "rnbq1rk1/ppp2ppp/5n2/3p4/1b1P4/2N2N2/PPPBBPPP/R2Q1RK1 b - - 5 8",
-        "Good King Safety for both sides: King safety scores should be minimal."
+    printSectionHeader("Middlegame Position (Black to move)");
+    testSearchAndEvaluate(
+        search_agent,
+        "r4rk1/1pp1qppp/p1np1n2/2b1p1B1/2B1P1b1/P1NP1N2/1PP2PPP/R2Q1RK1 b - - 2 9",
+        12, // Search depth
+        "Complex middlegame, requires careful calculation",
+        "0.0"
     );
-    testEvaluate(
-        "rnbq1rk1/pppp4/1b2pn2/8/8/1B2PN2/3P1PPP/RNBQ1RK1 w - - 0 1",
-        "Exposed Black King (No pawn shield on f, g, h): Should apply a penalty to Black."
-    );
-    testEvaluate(
-        "1nb1k1n1/pppppppp/5b1r/5K2/7r/6q1/PPPPPPPP/RNBQ1BNR b - - 0 1",
-        "White king under Attack : Should increase Black's attack score."
-    );
-     testEvaluate(
-        "rnbqkbnr/pppp1ppp/8/4p2Q/2B1P3/8/PPPP1PPP/RNB1K1NR w KQkq - 1 3",
-        "Direct Queen Attack (Scholar's Mate threat): White's attack score should be high."
+    
+    printSectionHeader("Endgame Position (White to move)");
+     testSearchAndEvaluate(
+        search_agent,
+        "8/8/8/p1k5/P7/8/1K6/8 w - - 0 1",
+        12, // Search depth
+        "King and Pawn Endgame - Should be a draw",
+        "0.0"
     );
 
-    // ##################################################################
-    // # 6. Specific Feature Tests (Bishop Pair, etc.)
-    // ##################################################################
-    printSectionHeader("Specific Feature Tests");
+    // --- Expanded Test Cases ---
 
-    testEvaluate(
-        "r1b1kbnr/pppp1ppp/2n5/8/8/2N5/PPPPPPPP/R1BQKBNR w KQkq - 2 4",
-        "Black has Bishop Pair: Should be a small bonus for Black (negative score)."
-    );
-     testEvaluate(
-        "rnbqk1nr/pppp1ppp/8/8/1b2P3/2N5/PPP2PPP/R1BQKBNR b KQkq - 2 5",
-        "After Bxc3, White gets the Bishop Pair: Position before trade is equal."
-    );
+    printSectionHeader("Tactics: Forks and Double Attacks");
+    testSearchAndEvaluate(search_agent, "r1b3k1/pp3ppp/5n2/2p1q3/2P5/3B4/PP3PPP/R2Q2K1 w - - 0 16", 12, "Queen Fork", "+3.5");
+    testSearchAndEvaluate(search_agent, "2r3k1/3n1pp1/3Qrn2/8/5B1q/2pP4/P1R1PPB1/5RK1 w - - 0 1", 12, "Double Attack", "+2.1");
 
-    // ##################################################################
-    // # 7. Tapered Evaluation (Middlegame vs. Endgame)
-    // ##################################################################
-    printSectionHeader("Tapered Evaluation (MG vs EG)");
+    printSectionHeader("Tactics: Pins and Skewers");
+    testSearchAndEvaluate(search_agent, "6rk/1bpq1p1p/p3pb2/8/PnP1P3/3P1Q2/1P3PPP/R1B2RK1 w - - 0 1", 12, "Cross-Pin", "+6.1");
+    testSearchAndEvaluate(search_agent, "6k1/p4p2/1p2p3/4P3/2P3r1/1P1K4/P7/3R4 b - - 1 35", 12, "Skewer", "-1.5");
+    
+    printSectionHeader("Tactics: Discovered Attacks");
+    testSearchAndEvaluate(search_agent, "3n4/3k1p1p/B2P2p1/8/2P2P2/P5PP/2P1r3/1R4K1 b - - 0 1", 12, "Discovered Attack", "-3.9");
 
-    testEvaluate(
-        "8/4k3/8/8/8/8/4N3/4K3 w - - 0 1",
-        "Knight in Endgame: K+N vs K is a theoretical draw. Score should be near 0."
-    );
-    testEvaluate(
-        "8/4k3/8/8/8/8/4R3/4K3 w - - 0 1",
-        "Rook in Endgame: K+R vs K is a win. Score should be high for White, reflecting Rook's strength in endgame."
-    );
-    testEvaluate(
-        "rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1",
-        "Middlegame Phase: Game phase value should be at its max."
-    );
-    testEvaluate(
-        "8/k7/8/8/8/8/8/K7 w - - 0 1",
-        "Endgame Phase: Game phase value should be at its minimum (0)."
-    );
+    printSectionHeader("Mate Finders");
+    testSearchAndEvaluate(search_agent, "3r1rk1/p1q2p1p/bp2p1p1/5nNQ/2P3N1/8/PB3PPP/1BR3K1 b - - 0 1", 12, "Mate in 3", "Black to play, #3");
+    testSearchAndEvaluate(search_agent, "8/2p1Np2/k2P2p1/2P5/2K2b2/1R6/r7/8 b - - 0 1", 14, "Mate in 4", "Black to play, #4");
+    testSearchAndEvaluate(search_agent, "8/8/8/8/8/3Q4/1K6/k7 w - - 0 1", 16, "Mate in 6", "White to play, #6");
 
+    printSectionHeader("Positional and Strategic Tests");
+    testSearchAndEvaluate(search_agent, "3r3k/pq1r1ppp/1pb1pn2/3n4/3P4/1BN1BN2/PP1Q1PPP/2R1R1K1 b - -", 12, "Isolated Queen Pawn", "+0.2");
+    testSearchAndEvaluate(search_agent, "6k1/p2p3p/5p1q/1Q6/1Q6/2Pp2P1/PP3P1P/6K1 w - -", 12, "Exposed King", "+5.4");
+    testSearchAndEvaluate(search_agent, "6k1/pp4p1/1b1pNp1p/3Pp3/2P1P3/8/PP3PPP/6K1 b - -", 12, "Knight Outpost", "+1.8");
+    testSearchAndEvaluate(search_agent, "r1b1r1k1/1p3pbp/p1qp1np1/2p1n3/P1P1P3/1PN1B1NP/3QBPP1/2RR2K1 b - -", 12, "Quiet Position (Prophylaxis)", "+0.1");
 
-    // ##################################################################
-    // # 8. General Positions from Games
-    // ##################################################################
-    printSectionHeader("Complex Middlegame Positions");
+    printSectionHeader("Theoretical Endgames");
+    testSearchAndEvaluate(search_agent, "4K3/4P1k1/8/8/8/8/7R/5r2 w - - 0 1", 16, "Lucena Position (Win)", "+6.5");
+    testSearchAndEvaluate(search_agent, "8/4k3/8/4p3/8/3K4/3R4/r7 b - - 0 1", 16, "Philidor Position (Draw)", "0.00");
+    testSearchAndEvaluate(search_agent, "8/8/8/8/1k6/8/p1K5/R7 w - - 0 1", 16, "Saavedra Position (Win)", "+M6");
+    
+    printSectionHeader("Engine Stumpers");
+    testSearchAndEvaluate(search_agent, "k1r2b2/1r6/3p1p2/p1pPpPp1/PpP1P1Pp/1P5P/1R6/2K3B1 w - - 0 1", 12, "Completely Blocked Position", "0.00");
+    testSearchAndEvaluate(search_agent, "8/k7/3p4/p2P1p2/P2P1P2/8/8/K7 w - -", 16, "Deep Zugzwang", "-2.1 (White to move loses)");
 
-    testEvaluate(
-        "r1bqk2r/pp2bppp/2n1pn2/2p5/2P5/2N2N2/PP1PBPPP/R1BQR1K1 b kq - 5 8",
-        "Quiet Catalan Opening: A balanced and complex position, score should be near 0."
-    );
-    testEvaluate(
-        "r3r1k1/pp1q1pp1/1np1bn1p/3p4/3P1B2/P1N1PN2/1PQ2PPP/2R1R1K1 b - - 3 17",
-        "Strategic Middlegame: White has space, Black has solid pieces. Should be roughly equal."
-    );
-    testEvaluate(
-        "2q1rr1k/1p1b2p1/p2p3p/P1pP2n1/2P1Pp2/2NBNP2/1P4PP/R5K1 w - - 0 29",
-        "Complex Late Middlegame: Black has attacking chances, score should likely be negative."
-    );
-
-    testEvaluate(
-        "rnbqkb1r/pppp1ppp/8/3Pp3/8/5P2/PPPP2PP/RNBQKBNR b KQ - 0 1",
-        "For Testing Purposes: FEN should be handled."
-    );
-
-    testEvaluate(
-        "rnbqkb1r/pppp1ppp/8/1B1np3/4P3/5P2/PPPP2PP/RNBQK1NR w KQ - 0 1",
-        "For Testing Purposes: FEN should be handled."
-    );
-
-    printSectionHeader("End of Tests");
 
     std::cout << "\n========== ALL TESTS COMPLETED ==========\n";
     return 0;

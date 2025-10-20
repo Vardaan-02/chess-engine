@@ -204,6 +204,8 @@ chess::Move Search::start_search(Board& board, int depth, int movetime, int wtim
     chess::Move best_move_overall{};
     int64_t last_score = 0;
 
+    searchEndTime = std::chrono::steady_clock::now() + std::chrono::seconds(12); 
+
     for (int i = 1; i <= 60; ++i) {
 
         if (std::chrono::steady_clock::now() >= searchEndTime) {
@@ -272,25 +274,31 @@ chess::Move Search::start_search(Board& board, int depth, int movetime, int wtim
             }
         }
         
-        if (stopSearch.load()) break;
+        // if (stopSearch.load()) break;
 
         // --- Aspiration Window re-search logic removed ---
         // We no longer check for fail-low/fail-high to 'continue' the while loop.
         
         last_score = current_alpha;
         if (!best_move_this_iter.is_null()) {
-            best_move_overall = best_move_this_iter;
+            best_move_overall = best_move_this_iter; // this line creates issue
         }
-        TTEntry entry = { board.zobrist_key, (uint8_t)i, last_score, TTEntry::EXACT, best_move_overall };
-        TT.store(entry);
+        // TTEntry entry = { board.zobrist_key, (uint8_t)i, last_score, TTEntry::EXACT, best_move_overall };
+        // TT.store(entry);
         // 'break' for the while loop is removed as the loop is gone.
 
-        std::cout << "info depth " << i << " score cp " << last_score
+        std::cout << "info depth " << i << " evaluation " << (last_score/100.0)
         << " nodes " << nodes_searched << " pv " << util::move_to_string(best_move_overall) << std::endl;
 
 
         if (stopSearch.load()) break;
     }
+
+    std::cout << "Evaluation " << (last_score/100.0)
+            << " Nodes " << nodes_searched
+            << " NPS " << (nodes_searched/8)
+            << " pv " << util::move_to_string(best_move_overall)
+            << std::endl;
     
     return best_move_overall;
 }
