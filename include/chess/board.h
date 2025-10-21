@@ -47,7 +47,7 @@ public:
     uint64_t zobrist_pawn_key; // optional pawn hash
     int32_t material_white;
     int32_t material_black;
-    int game_phase;
+    int32_t game_phase;
 
     // --- Undo stack
     std::vector<chess::Undo> undo_stack;
