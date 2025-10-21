@@ -120,6 +120,20 @@ void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
             mg_score += eval::eval_data.connected_pawn_bonus.mg;
             eg_score += eval::eval_data.connected_pawn_bonus.eg;
         }
+
+        // Backward Pawn Penalty
+        uint64_t backward_mask = chess::passed_pawn_masks_black[sq];
+        uint64_t friendly_pawns = b.bitboard[chess::WP] & backward_mask;
+        if ( !friendly_pawns ){
+            uint64_t next_square_bitboard = util::shift_board(util::create_bitboard_from_square(sq), chess::NORTH);
+            int next_square = util::lsb(next_square_bitboard);
+            uint64_t next_square_attacking_mask = chess::PawnAttacks[chess::WHITE][next_square];
+
+            if ( next_square_attacking_mask & b.bitboard[chess::BP] ){
+                mg_score -= eval::eval_data.backward_pawn_penalty.mg;
+                eg_score -= eval::eval_data.backward_pawn_penalty.eg;
+            }
+        }
         
         // Isolated Pawn Penalty
         int file = util::get_file(sq);
@@ -154,6 +168,20 @@ void pawn_evaluation(const Board& b, int& mg_score, int& eg_score) {
         if ( connecting_square & b.bitboard[chess::BP] ) {
             mg_score -= eval::eval_data.connected_pawn_bonus.mg;
             eg_score -= eval::eval_data.connected_pawn_bonus.eg;
+        }
+
+        // Backward Pawn Penalty
+        uint64_t backward_mask = chess::passed_pawn_masks_black[sq];
+        uint64_t friendly_pawns = b.bitboard[chess::BP] & backward_mask;
+        if ( !friendly_pawns ){
+            uint64_t next_square_bitboard = util::shift_board(util::create_bitboard_from_square(sq), chess::SOUTH);
+            int next_square = util::lsb(next_square_bitboard);
+            uint64_t next_square_attacking_mask = chess::PawnAttacks[chess::BLACK][next_square];
+
+            if ( next_square_attacking_mask & b.bitboard[chess::WP] ){
+                mg_score += eval::eval_data.backward_pawn_penalty.mg;
+                eg_score += eval::eval_data.backward_pawn_penalty.eg;
+            }
         }
         
         // Isolated Pawn Penalty
