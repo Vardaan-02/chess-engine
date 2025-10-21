@@ -192,6 +192,7 @@ struct Undo {
     int8_t prev_black_king_sq;
     uint64_t pinned;         // single pass using ray attacks
     uint64_t checks;       // squares of checking pieces
+    int32_t game_phase;
     bool double_check;
     uint64_t check_mask; // rays + checker squares
     Undo() = default;

@@ -91,6 +91,7 @@ void Board::set_fen(std::string &fen_cstr) {
     fullmove_number = fullmove;
     update_king_squares_from_bitboards();
     update_occupancies();
+    update_game_phase();
     compute_pins_and_checks();
     zobrist_key = Zobrist::calculate_zobrist_hash(*this);
 }
@@ -206,7 +207,7 @@ void Board::print_board() const {
     std::cout << "Halfmove clock: " << halfmove_clock << "\n";
     std::cout << "Fullmove number: " << fullmove_number << "\n";
     std::cout << "Zobrist key: 0x" << std::hex << zobrist_key << std::dec << "\n";
-
+    std::cout << "Game Phase: " << game_phase << "\n";
     std::cout << "Material (W/B): " << material_white << " / " << material_black << "\n\n";
 }
 
@@ -224,6 +225,7 @@ void Board::make_move(const chess::Move &mv) {
     undo.pinned = pinned;
     undo.double_check = double_check;
     undo.zobrist_before = zobrist_key;
+    undo.game_phase = game_phase;
 
     // 2. Extract move details
     const chess::Square from = (chess::Square)mv.from();
@@ -352,6 +354,7 @@ void Board::make_move(const chess::Move &mv) {
 
     // 7. Update combined bitboards
     update_occupancies();
+    update_game_phase();
     compute_pins_and_checks();
     zobrist_key = Zobrist::calculate_zobrist_hash(*this);
 
@@ -382,6 +385,7 @@ void Board::unmake_move(const chess::Move &mv) {
     pinned = undo.pinned;
     double_check = undo.double_check;
     zobrist_key = undo.zobrist_before;
+    game_phase = undo.game_phase;
 
     // Switch side back
     white_to_move = !white_to_move;

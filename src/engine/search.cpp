@@ -33,12 +33,24 @@ chess::Move Search::start_search(Board& board, int depth, int movetime, int wtim
     }
     else if (wtime > 0 || btime > 0) {
         int remaining_time = board.white_to_move ? wtime : btime;
-        int increment = board.white_to_move ? winc : binc;
-        
-        //Use minimum of 15 secs or 1/25th of the remaining time + inc
-        time_for_move_ms = std::min(8000, (remaining_time / 25) + increment);
+        int increment      = board.white_to_move ? winc  : binc;
 
-        // Ensure we don't use more time than we have, with a small buffer.
+        double phase = std::clamp((board.game_phase*1.0) / util::TOTAL_PHASE, 0.0, 1.0);
+
+        double base_time = (remaining_time / 25.0) + increment;
+
+        int time_for_move_ms = static_cast<int>(base_time);
+
+        if (phase > 0.15) time_for_move_ms = std::min(time_for_move_ms, 3500); // cap 3.5 sec max
+        if (phase > 0.05) time_for_move_ms = std::min(time_for_move_ms, 8000); // cap 8 sec max
+        else time_for_move_ms = std::min(time_for_move_ms, 15000); // cap 15 sec max
+
+        if (remaining_time < 3 * 60 * 1000) {
+            time_for_move_ms = 3000;
+        }
+        
+        if(remaining_time < 1*60*1000) time_for_move_ms = 1000;
+
         time_for_move_ms = std::min(time_for_move_ms, remaining_time - 50);
 
         searchEndTime = now + std::chrono::milliseconds(time_for_move_ms);

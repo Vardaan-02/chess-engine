@@ -83,6 +83,21 @@ namespace util{
         Rank8, Rank8, Rank8, Rank8, Rank8, Rank8, Rank8, Rank8
     };
 
+    constexpr int KNIGHT_PHASE = 1;
+    constexpr int BISHOP_PHASE = 1;
+    constexpr int ROOK_PHASE   = 2;
+    constexpr int QUEEN_PHASE  = 4;
+    constexpr int TOTAL_PHASE  = 24;
+
+    constexpr int phase_values[] = {
+        0, // NO PIECE
+        0, // PAWN (has no phase value)
+        1, // KNIGHT
+        1, // BISHOP
+        2, // ROOK
+        4, // QUEEN
+        0  // KING (has no phase value)
+    };
 
     // Takes in a square and returns a square
     inline chess::Square shift_square(chess::Square square, chess::Direction dir) {

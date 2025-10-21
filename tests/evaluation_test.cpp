@@ -16,6 +16,7 @@ void testEvaluate(std::string fen, const std::string& description) {
         board.set_fen(fen);
         // The evaluation function in search.cpp calls get_score_from_white_perspective
         int score = Search::evaluate(board); 
+        board.print_board();
         std::cout << "    Evaluation Score: " << score << "\n";
     } catch (const std::exception& e) {
         std::cerr << "    Error evaluating position: " << e.what() << "\n";
