@@ -1,6 +1,6 @@
 # Set the minimum required version of CMake and define the project.
 cmake_minimum_required(VERSION 3.14)
-project(HagnusCarlsen VERSION 1.0 LANGUAGES CXX)
+project(HV1 VERSION 1.0 LANGUAGES CXX)
 
 # Set the C++ standard.
 set(CMAKE_CXX_STANDARD 17)
@@ -32,10 +32,10 @@ endif()
 # --- Build the Main UCI Executable ---
 
 # Create the main executable for the UCI interface.
-add_executable(HagnusCarlsen main.cpp)
+add_executable(HV1 main.cpp)
 
 # Link the main executable against our core 'engine' library.
-target_link_libraries(HagnusCarlsen PRIVATE engine)
+target_link_libraries(HV1 PRIVATE engine)
 
 
 # --- Build Benchmarks (Optional) ---
@@ -80,7 +80,7 @@ endif()
 # --- Output ---
 
 # Print a message after configuration is done.
-message(STATUS "Configuration complete. Main executable is 'HagnusCarlsen'.")
+message(STATUS "Configuration complete. Main executable is 'HV1'.")
 message(STATUS "To build tests, use: cmake .. -DBUILD_TESTS=ON")
 message(STATUS "To build benchmarks, use: cmake .. -DBUILD_BENCHMARKS=ON")
 
