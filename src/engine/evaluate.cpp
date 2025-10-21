@@ -329,15 +329,15 @@ void bishop_evaluation(const Board& b, int& mg_score, int& eg_score) {
         mg_score += eval::eval_data.psts[chess::BISHOP][sq].mg;
         eg_score += eval::eval_data.psts[chess::BISHOP][sq].eg;
 
-        uint64_t white_pawns_of_bishop_color;
-        if (util::create_bitboard_from_square(sq) & util::black_squares) white_pawns_of_bishop_color = b.bitboard[chess::WP] & util::black_squares;
-        else white_pawns_of_bishop_color = b.bitboard[chess::WP] & util::white_squares;
+        uint64_t pawns_of_required_color;
+        if (util::create_bitboard_from_square(sq) & util::black_squares) pawns_of_required_color = b.bitboard[chess::WP] & util::white_squares;
+        else pawns_of_required_color = b.bitboard[chess::WP] & util::black_squares;
 
-        int no_of_pawns_on_bishop_color = util::count_bits(white_pawns_of_bishop_color);
+        int no_of_pawns_on_required_color = util::count_bits(pawns_of_required_color);
 
-        // Bad Bishop Penality
-        mg_score -= no_of_pawns_on_bishop_color * eval::eval_data.bad_bishop_penalty.mg;
-        eg_score -= no_of_pawns_on_bishop_color * eval::eval_data.bad_bishop_penalty.eg;
+        // Good Bishop Bonus
+        mg_score += no_of_pawns_on_required_color * eval::eval_data.good_bishop_bonus.mg;
+        eg_score += no_of_pawns_on_required_color * eval::eval_data.good_bishop_bonus.eg;
 
         // Mobility
         uint64_t bishop_moves_bitboard = chess::get_diagonal_slider_attacks(sq, b.occupied) & (~b.white_occupied);
@@ -369,15 +369,15 @@ void bishop_evaluation(const Board& b, int& mg_score, int& eg_score) {
         mg_score -= eval::eval_data.psts[chess::BISHOP][pst_sq].mg;
         eg_score -= eval::eval_data.psts[chess::BISHOP][pst_sq].eg;
 
-        uint64_t black_pawns_of_bishop_color;
-        if (util::create_bitboard_from_square(sq) & util::black_squares) black_pawns_of_bishop_color = b.bitboard[chess::BP] & util::black_squares;
-        else black_pawns_of_bishop_color = b.bitboard[chess::BP] & util::white_squares;
+        uint64_t black_pawns_of_required_color;
+        if (util::create_bitboard_from_square(sq) & util::black_squares) black_pawns_of_required_color = b.bitboard[chess::BP] & util::white_squares;
+        else black_pawns_of_required_color = b.bitboard[chess::BP] & util::black_squares;
 
-        int no_of_pawns_on_bishop_color = util::count_bits(black_pawns_of_bishop_color);
+        int no_of_pawns_on_bishop_color = util::count_bits(black_pawns_of_required_color);
 
-        // Bad Bishop Penality
-        mg_score += no_of_pawns_on_bishop_color * eval::eval_data.bad_bishop_penalty.mg;
-        eg_score += no_of_pawns_on_bishop_color * eval::eval_data.bad_bishop_penalty.eg;
+        // Good Bishop bonus
+        mg_score -= no_of_pawns_on_bishop_color * eval::eval_data.good_bishop_bonus.mg;
+        eg_score -= no_of_pawns_on_bishop_color * eval::eval_data.good_bishop_bonus.eg;
 
         // Mobility
         uint64_t bishop_moves_bitboard = chess::get_diagonal_slider_attacks(sq, b.occupied) & (~b.black_occupied);
